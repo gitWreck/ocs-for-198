@@ -101,7 +101,9 @@ async function getCompanies() {
 async function getStudentSubmission(studentId) {
   const { data, error } = await supabaseClient
     .from("student_submissions")
-    .select("id, student_id, submitted_at, updated_at, status")
+    .select(
+      "id, student_id, status, application_letter_url, cv_file_url, tcg_file_url, submitted_at, updated_at",
+    )
     .eq("student_id", studentId)
     .maybeSingle();
 
@@ -644,47 +646,30 @@ async function savePreferences() {
 
     const uploadedFiles = await uploadFiles();
 
-    if (!uploadedFiles || !uploadedFiles.length) {
-      throw new Error("No files were uploaded.");
+    if (!uploadedFiles || uploadedFiles.length < 3) {
+      throw new Error("Incomplete file uploads.");
+    }
+
+    const applicationLetter = uploadedFiles.find(
+      (file) => file.type === "application_letter",
+    );
+    const cv = uploadedFiles.find((file) => file.type === "cv");
+    const tcg = uploadedFiles.find((file) => file.type === "tcg");
+
+    if (!applicationLetter?.file_url || !cv?.file_url || !tcg?.file_url) {
+      throw new Error("Missing uploaded file URLs.");
     }
 
     const companyIds = selectedCompanies.map((company) => Number(company.id));
-
-    const choiceFiles = selectedCompanies.map((company, index) => {
-      const choiceNumber = index + 1;
-
-      const applicationLetter = uploadedFiles.find(
-        (file) =>
-          Number(file.choice_number) === choiceNumber &&
-          file.type === "application_letter",
-      );
-
-      const cv = uploadedFiles.find(
-        (file) =>
-          Number(file.choice_number) === choiceNumber && file.type === "cv",
-      );
-
-      const tcg = uploadedFiles.find(
-        (file) =>
-          Number(file.choice_number) === choiceNumber && file.type === "tcg",
-      );
-
-      return {
-        choice_rank: choiceNumber,
-        company_id: Number(company.id),
-        company_name: company.company_name,
-        application_letter_url: applicationLetter?.file_url || null,
-        cv_file_url: cv?.file_url || null,
-        tcg_file_url: tcg?.file_url || null,
-      };
-    });
 
     const { data, error } = await supabaseClient.rpc(
       "submit_student_preferences",
       {
         p_student_id: currentStudent.id,
         p_company_ids: companyIds,
-        p_choice_files: choiceFiles,
+        p_application_letter_url: applicationLetter.file_url,
+        p_cv_file_url: cv.file_url,
+        p_tcg_file_url: tcg.file_url,
       },
     );
 
@@ -704,6 +689,7 @@ async function savePreferences() {
       data?.message || "Preferences saved successfully.",
     );
 
+    hasSubmitted = true;
     lockPortalAfterSubmission();
   } catch (error) {
     console.error("Save preferences error:", error);
@@ -720,7 +706,8 @@ async function preloadExistingSubmission(studentId) {
 
   if (!submission) return;
 
-  hasSubmitted = true; // ✅ ADD THIS
+  hasSubmitted = true;
+
   const choices = await getStudentChoices(studentId);
 
   selectedCompanies = choices
@@ -733,9 +720,15 @@ async function preloadExistingSubmission(studentId) {
 
   renderSelectedCompanies();
 
-  $("#application-letter-name").text("Already uploaded");
-  $("#cv-file-name").text("Already uploaded");
-  $("#tcg-file-name").text("Already uploaded");
+  $("#application-letter-name").text(
+    submission.application_letter_url ? "Already uploaded" : "No file",
+  );
+  $("#cv-file-name").text(
+    submission.cv_file_url ? "Already uploaded" : "No file",
+  );
+  $("#tcg-file-name").text(
+    submission.tcg_file_url ? "Already uploaded" : "No file",
+  );
 
   lockPortalAfterSubmission();
   showPortalMessage("info", "You have already submitted your preferences.");
