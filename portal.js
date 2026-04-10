@@ -2,7 +2,7 @@ const SUPABASE_URL = "https://nzqcmepeoplxpkmvhyvw.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_zc3HjgzA6LkNykZkKOoM8Q_6SqJBj0i";
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const APPS_SCRIPT_UPLOAD_URL =
-  "https://script.google.com/macros/s/AKfycbzwA4q5BnOAbjPj1LJCZozFLX64_0tTM90ygFS1vqkI21lu7hBdofu5xOYyr-pk_ya6sw/exec";
+  "https://script.google.com/macros/s/AKfycbyXJZABTwXS9qeJASMsksIVEBnuB9txFBPkJwAGZH22brgGhjfmVL00hSw-XEO-3GaC4Q/exec";
 
 let companiesTable = null;
 
@@ -143,7 +143,7 @@ function renderCompaniesMobile(companies) {
   const totalItems = mobileCompaniesFiltered.length;
   const totalPages = Math.max(
     1,
-    Math.ceil(totalItems / MOBILE_COMPANIES_PER_PAGE)
+    Math.ceil(totalItems / MOBILE_COMPANIES_PER_PAGE),
   );
 
   if (mobileCompaniesPage > totalPages) {
@@ -178,7 +178,7 @@ function renderCompaniesMobile(companies) {
         <div class="card-body p-3">
           <div class="mb-3">
             <h6 class="fw-semibold mb-1">${escapeHtml(
-              company.company_name
+              company.company_name,
             )}</h6>
             <small class="text-muted">Host Institution</small>
           </div>
@@ -188,7 +188,7 @@ function renderCompaniesMobile(companies) {
               <div class="border rounded-3 p-2 bg-light h-100">
                 <div class="small text-muted">Total Slots</div>
                 <div class="fw-semibold">${escapeHtml(
-                  company.slots_total
+                  company.slots_total,
                 )}</div>
               </div>
             </div>
@@ -257,7 +257,7 @@ function getFilteredCompanies(keyword = "") {
   return latestCompanies.filter((company) =>
     String(company.company_name || "")
       .toLowerCase()
-      .includes(keyword)
+      .includes(keyword),
   );
 }
 
@@ -381,7 +381,7 @@ function setSelectedFiles() {
   $("#application-letter-name").text(
     selectedApplicationLetterFile
       ? selectedApplicationLetterFile.name
-      : "No file"
+      : "No file",
   );
 
   $("#cv-file-name").text(selectedCvFile ? selectedCvFile.name : "No file");
@@ -391,7 +391,7 @@ function setSelectedFiles() {
 
 function openCompanyModal(companyId) {
   const company = currentCompanies.find(
-    (item) => String(item.id) === String(companyId)
+    (item) => String(item.id) === String(companyId),
   );
 
   if (!company) return;
@@ -403,7 +403,7 @@ function openCompanyModal(companyId) {
   $("#modal-company-slots").text(
     `${company.slots_total || 0} slot(s) • ${
       company.total_applicants || 0
-    } applicant(s)`
+    } applicant(s)`,
   );
 
   if (!companyModalInstance) {
@@ -418,7 +418,7 @@ function selectCompanyFromModal() {
   const companyId = $("#modal-company-id").val();
 
   const company = currentCompanies.find(
-    (item) => String(item.id) === String(companyId)
+    (item) => String(item.id) === String(companyId),
   );
 
   if (!company) {
@@ -427,7 +427,7 @@ function selectCompanyFromModal() {
   }
 
   const alreadySelected = selectedCompanies.find(
-    (item) => String(item.id) === String(company.id)
+    (item) => String(item.id) === String(company.id),
   );
 
   if (alreadySelected) {
@@ -477,20 +477,12 @@ async function uploadFiles() {
     throw new Error("Logged in user email is missing.");
   }
 
-  if (!selectedCompanies || !selectedCompanies.length) {
-    throw new Error("Please select at least 1 company.");
-  }
-
   const termYear =
     document.getElementById("term-year")?.textContent?.trim() || "";
 
   if (!termYear) {
     throw new Error("Term and Year is required.");
   }
-
-  const choice1 = selectedCompanies[0]?.company_name || "";
-  const choice2 = selectedCompanies[1]?.company_name || "";
-  const choice3 = selectedCompanies[2]?.company_name || "";
 
   const fileToBase64 = (file) =>
     new Promise((resolve, reject) => {
@@ -536,82 +528,58 @@ async function uploadFiles() {
 
   const uploadedFiles = [];
 
-  for (let i = 0; i < selectedCompanies.length; i++) {
-    const company = selectedCompanies[i];
-    const choiceNumber = i + 1;
+  for (const item of documentFiles) {
+    const base64File = await fileToBase64(item.file);
 
-    if (!company || !company.company_name) {
-      continue;
+    const payload = {
+      email: loggedInUser.email,
+      term_year: termYear,
+      student_no: currentStudent.student_no,
+      fullname: currentStudent.fullname,
+      document_type: item.label,
+      file_name: item.file.name,
+      mime_type: item.file.type || "",
+      file_base64: base64File,
+    };
+
+    const response = await fetch(APPS_SCRIPT_UPLOAD_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        result?.message ||
+          `Failed to upload ${item.label.replaceAll("_", " ")}.`,
+      );
     }
 
-    for (const item of documentFiles) {
-      const base64File = await fileToBase64(item.file);
-
-      const payload = {
-        email: loggedInUser.email,
-        term_year: termYear,
-        student_no: currentStudent.student_no,
-        fullname: currentStudent.fullname,
-
-        choice_1: choice1,
-        choice_2: choice2,
-        choice_3: choice3,
-
-        company_name: company.company_name,
-        choice_number: choiceNumber,
-        document_type: item.label,
-
-        file_name: item.file.name,
-        mime_type: item.file.type || "",
-        file_base64: base64File,
-      };
-
-      const response = await fetch(APPS_SCRIPT_UPLOAD_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "text/plain;charset=utf-8",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          result?.message ||
-            `Failed to upload ${item.label.replaceAll("_", " ")} for ${
-              company.company_name
-            }.`
-        );
-      }
-
-      if (!result || !result.success) {
-        throw new Error(
-          result?.message ||
-            `${item.label.replaceAll("_", " ")} upload failed for ${
-              company.company_name
-            }.`
-        );
-      }
-
-      if (!result.file_url) {
-        throw new Error(
-          `Upload succeeded but no file URL was returned for ${item.label.replaceAll(
-            "_",
-            " "
-          )} - ${company.company_name}.`
-        );
-      }
-
-      uploadedFiles.push({
-        choice_number: choiceNumber,
-        company_name: company.company_name,
-        type: item.label,
-        file_url: result.file_url,
-        file_id: result.file_id || null,
-        file_name: result.file_name || item.file.name,
-      });
+    if (!result || !result.success) {
+      throw new Error(
+        result?.message || `${item.label.replaceAll("_", " ")} upload failed.`,
+      );
     }
+
+    if (!result.file_url) {
+      throw new Error(
+        `Upload succeeded but no file URL was returned for ${item.label.replaceAll(
+          "_",
+          " ",
+        )}.`,
+      );
+    }
+
+    uploadedFiles.push({
+      type: item.label,
+      file_url: result.file_url,
+      file_id: result.file_id || null,
+      file_name: result.file_name || item.file.name,
+    });
   }
 
   return uploadedFiles;
@@ -655,7 +623,7 @@ async function savePreferences() {
   if (!applicationLetterFile || !cvFile || !tcgFile) {
     showPortalMessage(
       "warning",
-      "Please upload your Application Letter, CV, and TCG."
+      "Please upload your Application Letter, CV, and TCG.",
     );
     return;
   }
@@ -668,7 +636,7 @@ async function savePreferences() {
     if (existingSubmission) {
       showPortalMessage(
         "warning",
-        "You have already submitted your preferences."
+        "You have already submitted your preferences.",
       );
       lockPortalAfterSubmission();
       return;
@@ -688,17 +656,17 @@ async function savePreferences() {
       const applicationLetter = uploadedFiles.find(
         (file) =>
           Number(file.choice_number) === choiceNumber &&
-          file.type === "application_letter"
+          file.type === "application_letter",
       );
 
       const cv = uploadedFiles.find(
         (file) =>
-          Number(file.choice_number) === choiceNumber && file.type === "cv"
+          Number(file.choice_number) === choiceNumber && file.type === "cv",
       );
 
       const tcg = uploadedFiles.find(
         (file) =>
-          Number(file.choice_number) === choiceNumber && file.type === "tcg"
+          Number(file.choice_number) === choiceNumber && file.type === "tcg",
       );
 
       return {
@@ -717,7 +685,7 @@ async function savePreferences() {
         p_student_id: currentStudent.id,
         p_company_ids: companyIds,
         p_choice_files: choiceFiles,
-      }
+      },
     );
 
     if (error) {
@@ -733,7 +701,7 @@ async function savePreferences() {
 
     showPortalMessage(
       "success",
-      data?.message || "Preferences saved successfully."
+      data?.message || "Preferences saved successfully.",
     );
 
     lockPortalAfterSubmission();
@@ -741,7 +709,7 @@ async function savePreferences() {
     console.error("Save preferences error:", error);
     showPortalMessage(
       "danger",
-      error?.message || "Failed to save preferences."
+      error?.message || "Failed to save preferences.",
     );
     $("#save-preferences-btn").prop("disabled", false).text("Save Preferences");
   }
@@ -758,8 +726,8 @@ async function preloadExistingSubmission(studentId) {
   selectedCompanies = choices
     .map((choice) =>
       currentCompanies.find(
-        (company) => String(company.id) === String(choice.company_id)
-      )
+        (company) => String(company.id) === String(choice.company_id),
+      ),
     )
     .filter(Boolean);
 
@@ -843,7 +811,7 @@ $(document).ready(function () {
   $(document).on("click", "#mobile-companies-next", function () {
     const totalPages = Math.max(
       1,
-      Math.ceil(mobileCompaniesFiltered.length / MOBILE_COMPANIES_PER_PAGE)
+      Math.ceil(mobileCompaniesFiltered.length / MOBILE_COMPANIES_PER_PAGE),
     );
 
     if (mobileCompaniesPage < totalPages) {
