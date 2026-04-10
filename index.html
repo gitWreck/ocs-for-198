@@ -10,49 +10,256 @@
       rel="stylesheet"
     />
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+    <style>
+      :root {
+        --brand-green: #04543c;
+        --brand-green-dark: #033b2a;
+        --soft-bg: linear-gradient(135deg, #f8fffb 0%, #eef6ff 100%);
+      }
+
+      body {
+        min-height: 100vh;
+        background: var(--soft-bg);
+        font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+      }
+
+      .login-wrapper {
+        min-height: 100vh;
+      }
+
+      .login-card {
+        border: 0;
+        border-radius: 1.5rem;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(15, 23, 42, 0.08);
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(8px);
+      }
+
+      .login-banner {
+        background: linear-gradient(
+          135deg,
+          var(--brand-green-dark) 0%,
+          var(--brand-green) 100%
+        );
+        color: #fff;
+        padding: 2rem;
+        height: 100%;
+      }
+
+      .login-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(255, 255, 255, 0.14);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #fff;
+        border-radius: 999px;
+        padding: 0.45rem 0.9rem;
+        font-size: 0.82rem;
+        font-weight: 600;
+      }
+
+      .portal-title {
+        font-size: clamp(1.8rem, 4vw, 2.5rem);
+        font-weight: 700;
+        line-height: 1.15;
+      }
+
+      .portal-subtitle {
+        color: rgba(255, 255, 255, 0.88);
+        font-size: 0.98rem;
+      }
+
+      .feature-list {
+        margin: 1.5rem 0 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .feature-list li {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+        color: rgba(255, 255, 255, 0.92);
+        font-size: 0.95rem;
+      }
+
+      .feature-dot {
+        width: 0.6rem;
+        height: 0.6rem;
+        border-radius: 50%;
+        background: #fff;
+        margin-top: 0.4rem;
+        flex-shrink: 0;
+      }
+
+      .login-content {
+        padding: 2rem;
+      }
+
+      .welcome-title {
+        font-size: 1.7rem;
+        font-weight: 700;
+        color: #1f2937;
+      }
+
+      .welcome-text {
+        color: #6b7280;
+        font-size: 0.96rem;
+      }
+
+      .signin-box {
+        border: 1px solid #e9ecef;
+        border-radius: 1rem;
+        padding: 1.25rem;
+        background: #f8fafc;
+      }
+
+      .note-box {
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+        border-radius: 1rem;
+        padding: 0.9rem 1rem;
+        color: #475569;
+        font-size: 0.88rem;
+      }
+
+      .footer-note {
+        font-size: 0.85rem;
+        color: #6b7280;
+      }
+
+      @media (max-width: 991.98px) {
+        .login-banner {
+          padding: 1.75rem;
+        }
+
+        .login-content {
+          padding: 1.5rem;
+        }
+      }
+
+      @media (max-width: 575.98px) {
+        .container {
+          padding-left: 1rem;
+          padding-right: 1rem;
+        }
+
+        .login-banner,
+        .login-content {
+          padding: 1.25rem;
+        }
+
+        .welcome-title {
+          font-size: 1.4rem;
+        }
+
+        .portal-title {
+          font-size: 1.7rem;
+        }
+      }
+    </style>
   </head>
-  <body class="bg-light">
-    <div class="container py-5">
-      <div class="row justify-content-center">
-        <div class="col-lg-6 col-xl-5">
-          <div class="card border-0 shadow-sm rounded-4">
-            <div class="card-body p-4 p-md-5">
-              <div class="text-center mb-4">
-                <h2 class="fw-bold mb-1">Internship HI Portal</h2>
-                <p class="text-muted mb-0">
-                  Sign in with your Google email to continue
-                </p>
-              </div>
 
-              <div id="login-section">
-                <div
-                  id="g_id_onload"
-                  data-client_id="157062663624-4qauas79i4sjfqg8re6cnm1j36tdfd3b.apps.googleusercontent.com"
-                  data-callback="handleCredentialResponse"
-                  data-auto_prompt="false"
-                ></div>
+  <body>
+    <div class="container">
+      <div
+        class="row justify-content-center align-items-center login-wrapper py-4 py-md-5"
+      >
+        <div class="col-12 col-lg-10 col-xl-9">
+          <div class="card login-card">
+            <div class="row g-0">
+              <!-- Left Side -->
+              <div class="col-lg-5 d-flex">
+                <div class="login-banner w-100">
+                  <div class="login-badge mb-3">Student Access Portal</div>
 
-                <div class="d-flex justify-content-center">
-                  <div
-                    class="g_id_signin"
-                    data-type="standard"
-                    data-size="large"
-                    data-theme="outline"
-                    data-text="sign_in_with"
-                    data-shape="rectangular"
-                    data-logo_alignment="left"
-                  ></div>
+                  <h1 class="portal-title mb-3">FOR 198 HI Portal</h1>
+                  <p class="portal-subtitle mb-0">
+                    Access your internship host institution preferences, and
+                    records using your Google account.
+                  </p>
+
+                  <ul class="feature-list">
+                    <li>
+                      <span class="feature-dot"></span>
+                      <span>Secure sign-in using your Google email</span>
+                    </li>
+                    <!-- <li>
+                      <span class="feature-dot"></span>
+                      <span
+                        >Mobile-friendly access on phones, tablets, and
+                        desktop</span
+                      >
+                    </li>
+                    <li>
+                      <span class="feature-dot"></span>
+                      <span
+                        >Easy access to your internship-related
+                        information</span
+                      >
+                    </li> -->
+                  </ul>
                 </div>
               </div>
 
-              <div id="login-error-section" class="d-none mt-4">
-                <div class="alert alert-danger mb-0" id="login-error-message">
-                  Unable to continue.
-                </div>
-              </div>
+              <!-- Right Side -->
+              <div class="col-lg-7">
+                <div class="login-content">
+                  <div class="mb-4 text-center text-lg-start">
+                    <h2 class="welcome-title mb-2">Welcome</h2>
+                    <p class="welcome-text mb-0">
+                      Sign in with the Google account linked to your student
+                      record to continue.
+                    </p>
+                  </div>
 
-              <div class="mt-4 small text-muted text-center">
-                Please use the email associated with your student record.
+                  <div id="login-section" class="signin-box">
+                    <div
+                      id="g_id_onload"
+                      data-client_id="157062663624-4qauas79i4sjfqg8re6cnm1j36tdfd3b.apps.googleusercontent.com"
+                      data-callback="handleCredentialResponse"
+                      data-auto_prompt="false"
+                    ></div>
+
+                    <div
+                      class="d-flex justify-content-center justify-content-lg-start"
+                    >
+                      <div
+                        class="g_id_signin"
+                        data-type="standard"
+                        data-size="large"
+                        data-theme="outline"
+                        data-text="sign_in_with"
+                        data-shape="pill"
+                        data-logo_alignment="left"
+                        data-width="280"
+                      ></div>
+                    </div>
+                  </div>
+
+                  <div id="login-error-section" class="d-none mt-3">
+                    <div
+                      class="alert alert-danger rounded-4 mb-0"
+                      id="login-error-message"
+                    >
+                      Unable to continue.
+                    </div>
+                  </div>
+
+                  <div class="note-box mt-4">
+                    Please use the email associated with your student record.
+                  </div>
+
+                  <div class="footer-note mt-4 text-center text-lg-start">
+                    Having trouble signing in? Make sure you are using the
+                    correct Google account.
+                  </div>
+                </div>
               </div>
             </div>
           </div>
