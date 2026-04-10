@@ -4,7 +4,7 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // const APPS_SCRIPT_UPLOAD_URL =
 //   "https://script.google.com/macros/s/AKfycbzAGBcOQUzyDR6ytw2VM8mHPAiKlT86_Y_9_VmqG-f2BKxmnAeyuLYgcTuCKhlE8etf/exec";
 const APPS_SCRIPT_UPLOAD_URL =
-  "https://script.google.com/macros/s/AKfycbxV2oI9TsPoamQsx2VlCBadbH769cFKRNVVFbZyOD2bnGChecbpcU_4-JD4mRIO7vfh/exec";
+  "https://script.google.com/macros/s/AKfycbzjAe--lbYBDkbkzoDH1maHG85XsHD2Jy6y6pFFI3r-Jnxwe2XRTXXBIc__HNgPGiZ3/exec";
 
 let companiesTable = null;
 
@@ -60,9 +60,9 @@ function logoutUser() {
   window.location.href = "index.html";
 }
 
-// function getRemainingSlots(company) {
-//   return Math.max(Number(company.slots_remaining || 0), 0);
-// }
+function getRemainingSlots(company) {
+  return Math.max(Number(company.slots_remaining || 0), 0);
+}
 
 async function getStudentByEmail(email) {
   const { data, error } = await supabaseClient
@@ -82,7 +82,9 @@ async function getStudentByEmail(email) {
 async function getCompanies() {
   const { data, error } = await supabaseClient
     .from("v_companies_with_slots")
-    .select("id, company_name, slots_total, total_applicants, is_active")
+    .select(
+      "id, company_name, slots_total, slots_taken, slots_remaining, is_active"
+    )
     .eq("is_active", true)
     .order("company_name", { ascending: true });
 
@@ -135,25 +137,26 @@ function renderCompanies(companies) {
 
   if (!companies.length) {
     rows.push([
-      '<span class="text-muted">No available HIs found.</span>',
+      '<span class="text-muted">No available companies found.</span>',
       "",
+      // "",
       "",
       "",
     ]);
   } else {
     companies.forEach((company) => {
-      const applicants = Number(company.total_applicants || 0);
+      const remaining = getRemainingSlots(company);
+      const taken = Number(company.slots_taken || 0);
+      const isFull = remaining <= 0;
 
       rows.push([
         `<span class="fw-semibold">${escapeHtml(company.company_name)}</span>`,
         escapeHtml(company.slots_total),
-        escapeHtml(applicants),
-        `<button 
-          class="btn btn-sm slot-badge-open select-company-btn"
-          data-id="${company.id}"
-        >
-          Select
-        </button>`,
+        escapeHtml(taken),
+        // escapeHtml(remaining),
+        `<span class="${isFull ? "slot-badge-full" : "slot-badge-open"}">
+          ${isFull ? "Full" : "Open"}
+        </span>`,
       ]);
     });
   }
@@ -166,7 +169,7 @@ function renderCompanies(companies) {
       order: [[0, "asc"]],
       deferRender: true,
       columnDefs: [
-        { orderable: false, targets: 3 }, // disable sorting on button column
+        { orderable: false, targets: 3 },
         { className: "align-middle", targets: "_all" },
       ],
       createdRow: function (row, rowData, dataIndex) {
@@ -177,7 +180,14 @@ function renderCompanies(companies) {
           return;
         }
 
+        const remaining = getRemainingSlots(company);
+        const isFull = remaining <= 0;
+
         $(row).addClass("company-row").attr("data-id", company.id);
+
+        if (isFull) {
+          $(row).addClass("table-light");
+        }
       },
       language: {
         search: "Search:",
@@ -210,11 +220,18 @@ function renderCompanies(companies) {
       const row = this.node();
       const company = companies[rowIdx];
 
-      $(row).removeClass("company-row").removeAttr("data-id");
+      $(row).removeClass("company-row table-light").removeAttr("data-id");
 
       if (!company) return;
 
+      const remaining = getRemainingSlots(company);
+      const isFull = remaining <= 0;
+
       $(row).addClass("company-row").attr("data-id", company.id);
+
+      if (isFull) {
+        $(row).addClass("table-light");
+      }
     });
   }
 }
@@ -251,15 +268,13 @@ function openCompanyModal(companyId) {
 
   if (!company) return;
 
+  const remaining = getRemainingSlots(company);
+
   $("#modal-company-id").val(company.id);
   $("#modal-company-name").text(company.company_name || "-");
-  // $("#modal-company-description").text("No description available.");
-  // $("#modal-company-address").text("-");
-  $("#modal-company-slots").text(
-    `${company.slots_total || 0} slot(s) • ${
-      company.total_applicants || 0
-    } applicant(s)`
-  );
+  $("#modal-company-description").text("No description available.");
+  $("#modal-company-address").text("-");
+  $("#modal-company-slots").text(remaining);
 
   if (!companyModalInstance) {
     const modalElement = document.getElementById("companyModal");
@@ -278,6 +293,13 @@ function selectCompanyFromModal() {
 
   if (!company) {
     showPortalMessage("danger", "Company not found.");
+    return;
+  }
+
+  const remaining = getRemainingSlots(company);
+
+  if (remaining <= 0) {
+    showPortalMessage("warning", "This company is already full.");
     return;
   }
 
@@ -479,11 +501,9 @@ async function refreshCompanies() {
 
 function lockPortalAfterSubmission() {
   $("#save-preferences-btn").prop("disabled", true).text("Already Submitted");
-  $("#application-letter").prop("disabled", true);
   $("#cv-file").prop("disabled", true);
-  $("#tcg-file").prop("disabled", true);
   $("#clear-choices-btn").prop("disabled", true);
-  $(".company-row").css("pointer-events", "none").addClass("opacity-50");
+  $(".company-card").css("pointer-events", "none").addClass("opacity-50");
 }
 
 async function savePreferences() {
