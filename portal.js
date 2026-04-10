@@ -13,6 +13,11 @@ let selectedCompanies = [];
 let selectedCvFile = null;
 let hasSubmitted = false;
 
+let latestCompanies = [];
+let mobileCompaniesFiltered = [];
+let mobileCompaniesPage = 1;
+const MOBILE_COMPANIES_PER_PAGE = 5;
+
 let companyModalInstance = null;
 
 function getStoredUser() {
@@ -129,10 +134,156 @@ function renderStudentInfo(student) {
   $("#student-email").text(student.email || "-");
 }
 
+function renderCompaniesMobile(companies) {
+  const $mobileList = $("#companies-mobile-list");
+  const $pagination = $("#companies-mobile-pagination");
+
+  mobileCompaniesFiltered = companies || [];
+
+  const totalItems = mobileCompaniesFiltered.length;
+  const totalPages = Math.max(
+    1,
+    Math.ceil(totalItems / MOBILE_COMPANIES_PER_PAGE)
+  );
+
+  if (mobileCompaniesPage > totalPages) {
+    mobileCompaniesPage = totalPages;
+  }
+
+  const startIndex = (mobileCompaniesPage - 1) * MOBILE_COMPANIES_PER_PAGE;
+  const endIndex = startIndex + MOBILE_COMPANIES_PER_PAGE;
+  const pagedCompanies = mobileCompaniesFiltered.slice(startIndex, endIndex);
+
+  $mobileList.empty();
+  $pagination.empty();
+
+  if (!totalItems) {
+    $mobileList.html(`
+      <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body text-center text-muted py-4">
+          No available HIs found.
+        </div>
+      </div>
+    `);
+    return;
+  }
+
+  pagedCompanies.forEach((company) => {
+    const applicants = Number(company.total_applicants || 0);
+
+    $mobileList.append(`
+      <div class="card border-0 shadow-sm rounded-4 mb-3 company-card" data-id="${
+        company.id
+      }">
+        <div class="card-body p-3">
+          <div class="mb-3">
+            <h6 class="fw-semibold mb-1">${escapeHtml(
+              company.company_name
+            )}</h6>
+            <small class="text-muted">Host Institution</small>
+          </div>
+
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <div class="border rounded-3 p-2 bg-light h-100">
+                <div class="small text-muted">Total Slots</div>
+                <div class="fw-semibold">${escapeHtml(
+                  company.slots_total
+                )}</div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="border rounded-3 p-2 bg-light h-100">
+                <div class="small text-muted">Applicants</div>
+                <div class="fw-semibold">${escapeHtml(applicants)}</div>
+              </div>
+            </div>
+          </div>
+
+          <button
+            class="btn btn-sm w-100 slot-badge-open select-company-btn"
+            data-id="${company.id}"
+          >
+            Select
+          </button>
+        </div>
+      </div>
+    `);
+  });
+
+  if (totalPages > 1) {
+    const showingStart = totalItems ? startIndex + 1 : 0;
+    const showingEnd = Math.min(endIndex, totalItems);
+
+    $pagination.html(`
+      <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap">
+        <div class="small text-muted">
+          Showing ${showingStart} to ${showingEnd} of ${totalItems} HIs
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+          <button
+            class="btn btn-sm btn-outline-secondary"
+            id="mobile-companies-prev"
+            ${mobileCompaniesPage === 1 ? "disabled" : ""}
+          >
+            Previous
+          </button>
+
+          <span class="small text-muted">
+            Page ${mobileCompaniesPage} of ${totalPages}
+          </span>
+
+          <button
+            class="btn btn-sm btn-outline-secondary"
+            id="mobile-companies-next"
+            ${mobileCompaniesPage === totalPages ? "disabled" : ""}
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    `);
+  }
+}
+
+function getCompaniesSearchKeyword() {
+  return ($("#companies-search").val() || "").toLowerCase().trim();
+}
+
+function getFilteredCompanies(keyword = "") {
+  if (!keyword) return [...latestCompanies];
+
+  return latestCompanies.filter((company) =>
+    String(company.company_name || "")
+      .toLowerCase()
+      .includes(keyword)
+  );
+}
+
+function isCompaniesMobileView() {
+  return window.innerWidth <= 1080;
+}
+
+function syncCompaniesView(resetMobilePage = false) {
+  const keyword = getCompaniesSearchKeyword();
+  const filtered = getFilteredCompanies(keyword);
+
+  if (isCompaniesMobileView()) {
+    if (resetMobilePage) {
+      mobileCompaniesPage = 1;
+    }
+    renderCompaniesMobile(filtered);
+  } else if (companiesTable) {
+    companiesTable.search(keyword).draw();
+  }
+}
+
 function renderCompanies(companies) {
+  latestCompanies = companies || [];
   const rows = [];
 
-  if (!companies.length) {
+  if (!latestCompanies.length) {
     rows.push([
       '<span class="text-muted">No available HIs found.</span>',
       "",
@@ -140,7 +291,7 @@ function renderCompanies(companies) {
       "",
     ]);
   } else {
-    companies.forEach((company) => {
+    latestCompanies.forEach((company) => {
       const applicants = Number(company.total_applicants || 0);
 
       rows.push([
@@ -165,11 +316,11 @@ function renderCompanies(companies) {
       order: [[0, "asc"]],
       deferRender: true,
       columnDefs: [
-        { orderable: false, targets: 3 }, // disable sorting on button column
+        { orderable: false, targets: 3 },
         { className: "align-middle", targets: "_all" },
       ],
       createdRow: function (row, rowData, dataIndex) {
-        const company = companies[dataIndex];
+        const company = latestCompanies[dataIndex];
 
         if (!company) {
           $(row).removeClass("company-row").removeAttr("data-id");
@@ -193,21 +344,13 @@ function renderCompanies(companies) {
       },
     });
   } else {
-    const currentSearch = companiesTable.search();
-    const currentOrder = companiesTable.order();
-    const currentPage = companiesTable.page();
-
     companiesTable.clear();
     companiesTable.rows.add(rows);
     companiesTable.draw(false);
 
-    companiesTable.search(currentSearch);
-    companiesTable.order(currentOrder);
-    companiesTable.page(currentPage).draw(false);
-
     companiesTable.rows().every(function (rowIdx) {
       const row = this.node();
-      const company = companies[rowIdx];
+      const company = latestCompanies[rowIdx];
 
       $(row).removeClass("company-row").removeAttr("data-id");
 
@@ -216,6 +359,9 @@ function renderCompanies(companies) {
       $(row).addClass("company-row").attr("data-id", company.id);
     });
   }
+
+  mobileCompaniesPage = 1;
+  syncCompaniesView(true);
 }
 
 function renderSelectedCompanies() {
@@ -679,6 +825,33 @@ $(document).ready(function () {
     openCompanyModal(companyId);
   });
 
+  $(document).on("click", ".company-card", function (e) {
+    if ($(e.target).closest(".select-company-btn").length) return;
+    if ($(this).hasClass("opacity-50")) return;
+
+    const companyId = $(this).attr("data-id");
+    openCompanyModal(companyId);
+  });
+
+  $(document).on("click", "#mobile-companies-prev", function () {
+    if (mobileCompaniesPage > 1) {
+      mobileCompaniesPage--;
+      renderCompaniesMobile(mobileCompaniesFiltered);
+    }
+  });
+
+  $(document).on("click", "#mobile-companies-next", function () {
+    const totalPages = Math.max(
+      1,
+      Math.ceil(mobileCompaniesFiltered.length / MOBILE_COMPANIES_PER_PAGE)
+    );
+
+    if (mobileCompaniesPage < totalPages) {
+      mobileCompaniesPage++;
+      renderCompaniesMobile(mobileCompaniesFiltered);
+    }
+  });
+
   $("#select-company-btn").on("click", function () {
     selectCompanyFromModal();
   });
@@ -699,7 +872,14 @@ $(document).ready(function () {
     logoutUser();
   });
 
-  // ✅ ADD THIS HERE
+  $(document).on("input", "#companies-search", function () {
+    syncCompaniesView(true);
+  });
+
+  $(window).on("resize", function () {
+    syncCompaniesView(false);
+  });
+
   // setInterval(() => {
   //   refreshCompanies();
   // }, 5000);
