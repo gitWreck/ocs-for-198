@@ -2,7 +2,7 @@ const SUPABASE_URL = "https://nzqcmepeoplxpkmvhyvw.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_zc3HjgzA6LkNykZkKOoM8Q_6SqJBj0i";
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const APPS_SCRIPT_UPLOAD_URL =
-  "https://script.google.com/macros/s/AKfycbyXJZABTwXS9qeJASMsksIVEBnuB9txFBPkJwAGZH22brgGhjfmVL00hSw-XEO-3GaC4Q/exec";
+  "https://script.google.com/macros/s/AKfycbxCDZbx5IEtuk2UB5Rt4Z1dOybIrSJhOY1t-3_HgN0_Onh1TR_pzAcTsHe7KNVQ-pek/exec";
 
 let companiesTable = null;
 
@@ -102,7 +102,7 @@ async function getStudentSubmission(studentId) {
   const { data, error } = await supabaseClient
     .from("student_submissions")
     .select(
-      "id, student_id, status, application_letter_url, cv_file_url, tcg_file_url, submitted_at, updated_at",
+      "id, student_id, status, application_letter_url, cv_file_url, tcg_file_url, submitted_at, updated_at"
     )
     .eq("student_id", studentId)
     .maybeSingle();
@@ -145,7 +145,7 @@ function renderCompaniesMobile(companies) {
   const totalItems = mobileCompaniesFiltered.length;
   const totalPages = Math.max(
     1,
-    Math.ceil(totalItems / MOBILE_COMPANIES_PER_PAGE),
+    Math.ceil(totalItems / MOBILE_COMPANIES_PER_PAGE)
   );
 
   if (mobileCompaniesPage > totalPages) {
@@ -180,7 +180,7 @@ function renderCompaniesMobile(companies) {
         <div class="card-body p-3">
           <div class="mb-3">
             <h6 class="fw-semibold mb-1">${escapeHtml(
-              company.company_name,
+              company.company_name
             )}</h6>
             <small class="text-muted">Host Institution</small>
           </div>
@@ -190,7 +190,7 @@ function renderCompaniesMobile(companies) {
               <div class="border rounded-3 p-2 bg-light h-100">
                 <div class="small text-muted">Total Slots</div>
                 <div class="fw-semibold">${escapeHtml(
-                  company.slots_total,
+                  company.slots_total
                 )}</div>
               </div>
             </div>
@@ -259,7 +259,7 @@ function getFilteredCompanies(keyword = "") {
   return latestCompanies.filter((company) =>
     String(company.company_name || "")
       .toLowerCase()
-      .includes(keyword),
+      .includes(keyword)
   );
 }
 
@@ -383,7 +383,7 @@ function setSelectedFiles() {
   $("#application-letter-name").text(
     selectedApplicationLetterFile
       ? selectedApplicationLetterFile.name
-      : "No file",
+      : "No file"
   );
 
   $("#cv-file-name").text(selectedCvFile ? selectedCvFile.name : "No file");
@@ -393,7 +393,7 @@ function setSelectedFiles() {
 
 function openCompanyModal(companyId) {
   const company = currentCompanies.find(
-    (item) => String(item.id) === String(companyId),
+    (item) => String(item.id) === String(companyId)
   );
 
   if (!company) return;
@@ -405,7 +405,7 @@ function openCompanyModal(companyId) {
   $("#modal-company-slots").text(
     `${company.slots_total || 0} slot(s) • ${
       company.total_applicants || 0
-    } applicant(s)`,
+    } applicant(s)`
   );
 
   if (!companyModalInstance) {
@@ -420,7 +420,7 @@ function selectCompanyFromModal() {
   const companyId = $("#modal-company-id").val();
 
   const company = currentCompanies.find(
-    (item) => String(item.id) === String(companyId),
+    (item) => String(item.id) === String(companyId)
   );
 
   if (!company) {
@@ -429,7 +429,7 @@ function selectCompanyFromModal() {
   }
 
   const alreadySelected = selectedCompanies.find(
-    (item) => String(item.id) === String(company.id),
+    (item) => String(item.id) === String(company.id)
   );
 
   if (alreadySelected) {
@@ -557,13 +557,13 @@ async function uploadFiles() {
     if (!response.ok) {
       throw new Error(
         result?.message ||
-          `Failed to upload ${item.label.replaceAll("_", " ")}.`,
+          `Failed to upload ${item.label.replaceAll("_", " ")}.`
       );
     }
 
     if (!result || !result.success) {
       throw new Error(
-        result?.message || `${item.label.replaceAll("_", " ")} upload failed.`,
+        result?.message || `${item.label.replaceAll("_", " ")} upload failed.`
       );
     }
 
@@ -571,8 +571,8 @@ async function uploadFiles() {
       throw new Error(
         `Upload succeeded but no file URL was returned for ${item.label.replaceAll(
           "_",
-          " ",
-        )}.`,
+          " "
+        )}.`
       );
     }
 
@@ -625,7 +625,7 @@ async function savePreferences() {
   if (!applicationLetterFile || !cvFile || !tcgFile) {
     showPortalMessage(
       "warning",
-      "Please upload your Application Letter, CV, and TCG.",
+      "Please upload your Application Letter, CV, and TCG."
     );
     return;
   }
@@ -638,7 +638,7 @@ async function savePreferences() {
     if (existingSubmission) {
       showPortalMessage(
         "warning",
-        "You have already submitted your preferences.",
+        "You have already submitted your preferences."
       );
       lockPortalAfterSubmission();
       return;
@@ -651,7 +651,7 @@ async function savePreferences() {
     }
 
     const applicationLetter = uploadedFiles.find(
-      (file) => file.type === "application_letter",
+      (file) => file.type === "application_letter"
     );
     const cv = uploadedFiles.find((file) => file.type === "cv");
     const tcg = uploadedFiles.find((file) => file.type === "tcg");
@@ -670,7 +670,7 @@ async function savePreferences() {
         p_application_letter_url: applicationLetter.file_url,
         p_cv_file_url: cv.file_url,
         p_tcg_file_url: tcg.file_url,
-      },
+      }
     );
 
     if (error) {
@@ -686,7 +686,7 @@ async function savePreferences() {
 
     showPortalMessage(
       "success",
-      data?.message || "Preferences saved successfully.",
+      data?.message || "Preferences saved successfully."
     );
 
     hasSubmitted = true;
@@ -695,7 +695,7 @@ async function savePreferences() {
     console.error("Save preferences error:", error);
     showPortalMessage(
       "danger",
-      error?.message || "Failed to save preferences.",
+      error?.message || "Failed to save preferences."
     );
     $("#save-preferences-btn").prop("disabled", false).text("Save Preferences");
   }
@@ -713,21 +713,21 @@ async function preloadExistingSubmission(studentId) {
   selectedCompanies = choices
     .map((choice) =>
       currentCompanies.find(
-        (company) => String(company.id) === String(choice.company_id),
-      ),
+        (company) => String(company.id) === String(choice.company_id)
+      )
     )
     .filter(Boolean);
 
   renderSelectedCompanies();
 
   $("#application-letter-name").text(
-    submission.application_letter_url ? "Already uploaded" : "No file",
+    submission.application_letter_url ? "Already uploaded" : "No file"
   );
   $("#cv-file-name").text(
-    submission.cv_file_url ? "Already uploaded" : "No file",
+    submission.cv_file_url ? "Already uploaded" : "No file"
   );
   $("#tcg-file-name").text(
-    submission.tcg_file_url ? "Already uploaded" : "No file",
+    submission.tcg_file_url ? "Already uploaded" : "No file"
   );
 
   lockPortalAfterSubmission();
@@ -804,7 +804,7 @@ $(document).ready(function () {
   $(document).on("click", "#mobile-companies-next", function () {
     const totalPages = Math.max(
       1,
-      Math.ceil(mobileCompaniesFiltered.length / MOBILE_COMPANIES_PER_PAGE),
+      Math.ceil(mobileCompaniesFiltered.length / MOBILE_COMPANIES_PER_PAGE)
     );
 
     if (mobileCompaniesPage < totalPages) {
