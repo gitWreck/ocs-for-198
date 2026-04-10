@@ -1,10 +1,8 @@
 const SUPABASE_URL = "https://nzqcmepeoplxpkmvhyvw.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_zc3HjgzA6LkNykZkKOoM8Q_6SqJBj0i";
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-// const APPS_SCRIPT_UPLOAD_URL =
-//   "https://script.google.com/macros/s/AKfycbzAGBcOQUzyDR6ytw2VM8mHPAiKlT86_Y_9_VmqG-f2BKxmnAeyuLYgcTuCKhlE8etf/exec";
 const APPS_SCRIPT_UPLOAD_URL =
-  "https://script.google.com/macros/s/AKfycbxV2oI9TsPoamQsx2VlCBadbH769cFKRNVVFbZyOD2bnGChecbpcU_4-JD4mRIO7vfh/exec";
+  "https://script.google.com/macros/s/AKfycbzwA4q5BnOAbjPj1LJCZozFLX64_0tTM90ygFS1vqkI21lu7hBdofu5xOYyr-pk_ya6sw/exec";
 
 let companiesTable = null;
 
@@ -13,6 +11,7 @@ let currentStudent = null;
 let currentCompanies = [];
 let selectedCompanies = [];
 let selectedCvFile = null;
+let hasSubmitted = false;
 
 let companyModalInstance = null;
 
@@ -607,6 +606,7 @@ async function preloadExistingSubmission(studentId) {
 
   if (!submission) return;
 
+  hasSubmitted = true; // ✅ ADD THIS
   const choices = await getStudentChoices(studentId);
 
   selectedCompanies = choices
@@ -700,7 +700,7 @@ $(document).ready(function () {
   });
 
   // ✅ ADD THIS HERE
-  setInterval(() => {
-    refreshCompanies();
-  }, 3000);
+  // setInterval(() => {
+  //   refreshCompanies();
+  // }, 5000);
 });
