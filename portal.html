@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -207,35 +207,35 @@
       }
 
       .companies-desktop-wrap {
-  display: block;
-}
+        display: block;
+      }
 
-.companies-mobile-wrap {
-  display: none;
-}
+      .companies-mobile-wrap {
+        display: none;
+      }
 
-@media (max-width: 1080px) {
-  .companies-desktop-wrap {
-    display: none;
-  }
+      @media (max-width: 1080px) {
+        .companies-desktop-wrap {
+          display: none;
+        }
 
-  .companies-mobile-wrap {
-    display: block;
-  }
+        .companies-mobile-wrap {
+          display: block;
+        }
 
-  .company-card {
-    transition: all 0.2s ease;
-  }
+        .company-card {
+          transition: all 0.2s ease;
+        }
 
-  .company-card:hover {
-    transform: translateY(-1px);
-  }
+        .company-card:hover {
+          transform: translateY(-1px);
+        }
 
-  .company-card .card-body {
-    background: #fff;
-    border-radius: 1rem;
-  }
-}
+        .company-card .card-body {
+          background: #fff;
+          border-radius: 1rem;
+        }
+      }
     </style>
   </head>
   <body>
@@ -258,19 +258,16 @@
               </p>
 
               <!-- ✅ Added Instructions -->
-              <div class="small opacity-75 mt-3" style="font-size: 16px;"">
+              <div class="small opacity-75 mt-3" style="font-size: 16px">
                 <div class="fw-semibold mb-1">Instructions:</div>
                 <ul class="mb-0 ps-3">
                   <li>
                     Select up to <strong>3 HIs</strong> (at least 1 required)
                   </li>
-                  <li>Click a row to view details before selecting</li>
+                  <li>Click a row to confirm before selecting</li>
                   <li>
                     Upload your
-                    <strong
-                      >Application Letter, CV and Letter (PDF)
-                      separately</strong
-                    >
+                    <strong>Application Letter, CV and TCG (PDF) merged</strong>
                   </li>
                   <li>Click <strong>Save Preferences</strong> to submit</li>
                   <li>Submission is <strong>one-time only</strong></li>
@@ -417,42 +414,48 @@
                   </div>
                 </div>
 
-<!-- Search -->
-<div class="mb-3">
-    <input
-      type="text"
-      id="companies-search"
-      class="form-control"
-      placeholder="Search host institution..."
-    />
-  </div>
-  
-  <!-- Desktop / larger screens -->
-  <div class="companies-desktop-wrap">
-    <div class="table-responsive">
-      <table
-        id="companies-table"
-        class="table align-middle mb-0"
-        style="width: 100%"
-      >
-        <thead>
-          <tr>
-            <th>HI name</th>
-            <th>Total Slots</th>
-            <th>No. of Applicants</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody id="companies-table-body"></tbody>
-      </table>
-    </div>
-  </div>
-  
-  <!-- Mobile cards -->
-  <div class="companies-mobile-wrap">
-    <div id="companies-mobile-list"></div>
-    <div id="companies-mobile-pagination" class="mt-3"></div>
-  </div>
+                <!-- Mobile Search (only visible on small screens) -->
+                <div class="mb-3 d-block d-xl-none">
+                  <input
+                    type="text"
+                    id="companies-search"
+                    class="form-control"
+                    placeholder="Search host institution..."
+                  />
+                </div>
+
+                <!-- Desktop / larger screens -->
+                <div class="companies-desktop-wrap">
+                  <div class="table-responsive p-2">
+                    <table
+                      id="companies-table"
+                      class="table align-middle mb-0"
+                      style="width: 100%"
+                    >
+                      <thead>
+                        <tr>
+                          <th>HI name</th>
+                          <th>Total Slots</th>
+                          <th>No. of Applicants</th>
+                          <th>Action</th>
+                        </tr>
+                      </thead>
+                      <tbody id="companies-table-body"></tbody>
+                    </table>
+
+                    <!-- Desktop Search (DataTables default) -->
+                    <!-- <div
+                      class="d-none d-xl-block mt-2"
+                      id="companies-table-search-wrap"
+                    ></div> -->
+                  </div>
+                </div>
+
+                <!-- Mobile cards -->
+                <div class="companies-mobile-wrap">
+                  <div id="companies-mobile-list"></div>
+                  <div id="companies-mobile-pagination" class="mt-3"></div>
+                </div>
               </div>
             </div>
 
@@ -460,67 +463,34 @@
               <div class="card-body p-4">
                 <div class="section-title mb-1">Documents</div>
                 <div class="section-subtitle mb-4">
-                  Upload your required documents before submitting your
+                  Upload your processed PDF document before submitting your
                   preferences
                 </div>
 
-                <!-- Application Letter -->
                 <div class="mb-3">
                   <label
-                    for="application-letter"
+                    for="submitted-documents"
                     class="form-label fw-semibold"
                   >
-                    Application Letter
+                    Submitted Documents
                   </label>
                   <input
                     type="file"
                     class="form-control"
-                    id="application-letter"
-                    accept=".pdf"
+                    id="submitted-documents"
+                    accept=".pdf,application/pdf"
                   />
                   <div class="form-text">PDF format only</div>
                 </div>
 
-                <!-- CV -->
                 <div class="mb-3">
-                  <label for="cv-file" class="form-label fw-semibold">
-                    Curriculum Vitae (CV)
-                  </label>
-                  <input
-                    type="file"
-                    class="form-control"
-                    id="cv-file"
-                    accept=".pdf"
-                  />
-                  <div class="form-text">PDF format only</div>
+                  <div class="info-label">Selected File</div>
+                  <div class="small">
+                    <span id="submitted-documents-name">No file</span>
+                  </div>
                 </div>
 
-                <!-- TCG -->
-                <div class="mb-3">
-                  <label for="tcg-file" class="form-label fw-semibold">
-                    True Copy of Grades (TCG)
-                  </label>
-                  <input
-                    type="file"
-                    class="form-control"
-                    id="tcg-file"
-                    accept=".pdf"
-                  />
-                  <div class="form-text">PDF format only</div>
-                </div>
-
-                <!-- Selected Files Display -->
-                <div class="mb-3">
-                  <div class="info-label">Selected Files</div>
-                  <ul class="mb-0 small">
-                    <li>
-                      Application Letter:
-                      <span id="application-letter-name">No file</span>
-                    </li>
-                    <li>CV: <span id="cv-file-name">No file</span></li>
-                    <li>TCG: <span id="tcg-file-name">No file</span></li>
-                  </ul>
-                </div>
+                <div id="save-message" class="alert d-none mb-3"></div>
 
                 <div id="save-message" class="alert d-none mb-3"></div>
 
@@ -598,6 +568,72 @@
               id="select-company-btn"
             >
               Select Company
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="modal fade"
+      id="saveConfirmModal"
+      tabindex="-1"
+      aria-labelledby="saveConfirmModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+          <div class="modal-header border-0 pb-0">
+            <h5 class="modal-title fw-semibold" id="saveConfirmModalLabel">
+              Confirm Submission
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+              id="save-confirm-close-btn"
+            ></button>
+          </div>
+
+          <div class="modal-body pt-2">
+            <div id="save-confirm-content">
+              <p class="mb-2">
+                Are you sure you want to submit your host institution
+                preferences?
+              </p>
+              <p class="text-muted small mb-0">
+                Once submitted, you will no longer be able to edit your choices.
+              </p>
+            </div>
+
+            <div id="save-loading-content" class="d-none text-center py-3">
+              <div class="spinner-border text-primary mb-3" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <div class="fw-semibold">Submitting your preferences...</div>
+              <div class="text-muted small">
+                Please wait while we save your selected HIs and upload your
+                file.
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer border-0 pt-0" id="save-confirm-actions">
+            <button
+              type="button"
+              class="btn btn-light px-4"
+              data-bs-dismiss="modal"
+              id="save-cancel-btn"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="btn btn-portal-primary px-4"
+              id="confirm-save-btn"
+            >
+              Confirm Save
             </button>
           </div>
         </div>
