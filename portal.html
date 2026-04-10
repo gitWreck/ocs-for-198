@@ -116,12 +116,14 @@
       .btn-portal-primary {
         background-color: var(--portal-maroon);
         border-color: var(--portal-maroon);
+        color: #fff;
       }
 
       .btn-portal-primary:hover,
       .btn-portal-primary:focus {
         background-color: #74112f;
         border-color: #74112f;
+        color: #fff;
       }
 
       .btn-portal-secondary {
@@ -219,11 +221,32 @@
           <div class="row align-items-center g-3">
             <div class="col-lg-8">
               <h1 class="h3 fw-bold mb-2">Internship HI Selection</h1>
-              <p class="mb-0 opacity-75">
+              <p class="mb-2 opacity-75">
                 Review the available HIs, select up to three preferences, upload
-                your CV, Letter, and save your submission.
+                your Application Letter, CV, TCG, and save your submission.
               </p>
+
+              <!-- ✅ Added Instructions -->
+              <div class="small opacity-75 mt-3" style="font-size: 16px;"">
+                <div class="fw-semibold mb-1">Instructions:</div>
+                <ul class="mb-0 ps-3">
+                  <li>
+                    Select up to <strong>3 HIs</strong> (at least 1 required)
+                  </li>
+                  <li>Click a row to view details before selecting</li>
+                  <li>
+                    Upload your
+                    <strong
+                      >Application Letter, CV and Letter (PDF)
+                      separately</strong
+                    >
+                  </li>
+                  <li>Click <strong>Save Preferences</strong> to submit</li>
+                  <li>Submission is <strong>one-time only</strong></li>
+                </ul>
+              </div>
             </div>
+
             <div class="col-lg-4 text-lg-end">
               <span class="badge rounded-pill bg-light text-dark px-3 py-2">
                 Simple • Realtime Slots • One Submission
@@ -277,9 +300,15 @@
                   <div id="student-no" class="info-value">-</div>
                 </div>
 
-                <div class="mb-0">
+                <div class="mb-3">
                   <div class="info-label">Email</div>
                   <div id="student-email" class="info-value">-</div>
+                </div>
+
+                <!-- NEW: Term and Year (non-editable) -->
+                <div class="mb-0">
+                  <div class="info-label">Term and Year</div>
+                  <div id="term-year" class="info-value">2026 Midyear</div>
                 </div>
               </div>
             </div>
@@ -367,8 +396,9 @@
                       <tr>
                         <th>HI name</th>
                         <th>Total Slots</th>
-                        <th>Taken</th>
-                        <th>Remaining</th>
+                        <!-- <th>Taken</th>
+                        <th>Remaining</th> -->
+                        <th>No. of Applicants</th>
                         <th>Status</th>
                       </tr>
                     </thead>
@@ -382,30 +412,68 @@
 
             <div class="card portal-card">
               <div class="card-body p-4">
-                <div class="section-title mb-1">Upload CV and Letter</div>
+                <div class="section-title mb-1">Documents</div>
                 <div class="section-subtitle mb-4">
-                  Upload your latest CV and Letter before submitting your
+                  Upload your required documents before submitting your
                   preferences
                 </div>
 
+                <!-- Application Letter -->
                 <div class="mb-3">
-                  <label for="cv-file" class="form-label fw-semibold"
-                    >CV and Letter File</label
+                  <label
+                    for="application-letter"
+                    class="form-label fw-semibold"
                   >
+                    Application Letter
+                  </label>
+                  <input
+                    type="file"
+                    class="form-control"
+                    id="application-letter"
+                    accept=".pdf"
+                  />
+                  <div class="form-text">PDF format only</div>
+                </div>
+
+                <!-- CV -->
+                <div class="mb-3">
+                  <label for="cv-file" class="form-label fw-semibold">
+                    Curriculum Vitae (CV)
+                  </label>
                   <input
                     type="file"
                     class="form-control"
                     id="cv-file"
-                    accept=".pdf,.doc,.docx"
+                    accept=".pdf"
                   />
-                  <div class="form-text">Accepted formats: PDF</div>
+                  <div class="form-text">PDF format only</div>
                 </div>
 
+                <!-- TCG -->
                 <div class="mb-3">
-                  <div class="info-label">Selected File</div>
-                  <div id="cv-file-name" class="info-value">
-                    No file selected
-                  </div>
+                  <label for="tcg-file" class="form-label fw-semibold">
+                    True Copy of Grades (TCG)
+                  </label>
+                  <input
+                    type="file"
+                    class="form-control"
+                    id="tcg-file"
+                    accept=".pdf"
+                  />
+                  <div class="form-text">PDF format only</div>
+                </div>
+
+                <!-- Selected Files Display -->
+                <div class="mb-3">
+                  <div class="info-label">Selected Files</div>
+                  <ul class="mb-0 small">
+                    <li>
+                      Application Letter:
+                      <span id="application-letter-name">No file</span>
+                    </li>
+                    <li>CV: <span id="cv-file-name">No file</span></li>
+                    <li>TCG: <span id="tcg-file-name">No file</span></li>
+                  </ul>
                 </div>
 
                 <div id="save-message" class="alert d-none mb-3"></div>

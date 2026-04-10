@@ -1,8 +1,10 @@
 const SUPABASE_URL = "https://nzqcmepeoplxpkmvhyvw.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_zc3HjgzA6LkNykZkKOoM8Q_6SqJBj0i";
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// const APPS_SCRIPT_UPLOAD_URL =
+//   "https://script.google.com/macros/s/AKfycbzAGBcOQUzyDR6ytw2VM8mHPAiKlT86_Y_9_VmqG-f2BKxmnAeyuLYgcTuCKhlE8etf/exec";
 const APPS_SCRIPT_UPLOAD_URL =
-  "https://script.google.com/macros/s/AKfycbzAGBcOQUzyDR6ytw2VM8mHPAiKlT86_Y_9_VmqG-f2BKxmnAeyuLYgcTuCKhlE8etf/exec";
+  "https://script.google.com/macros/s/AKfycbzmprL8sCzcucGmLmrblX1oFc8HRPoJC9LlflUxb-CEr8GBIep_nwCT0RvDvg91TmH0/exec";
 
 let companiesTable = null;
 
@@ -11,6 +13,7 @@ let currentStudent = null;
 let currentCompanies = [];
 let selectedCompanies = [];
 let selectedCvFile = null;
+
 let companyModalInstance = null;
 
 function getStoredUser() {
@@ -96,7 +99,7 @@ async function getCompanies() {
 async function getStudentSubmission(studentId) {
   const { data, error } = await supabaseClient
     .from("student_submissions")
-    .select("id, student_id, cv_file_url, submitted_at, updated_at, status")
+    .select("id, student_id, submitted_at, updated_at, status")
     .eq("student_id", studentId)
     .maybeSingle();
 
@@ -136,7 +139,7 @@ function renderCompanies(companies) {
     rows.push([
       '<span class="text-muted">No available companies found.</span>',
       "",
-      "",
+      // "",
       "",
       "",
     ]);
@@ -150,7 +153,7 @@ function renderCompanies(companies) {
         `<span class="fw-semibold">${escapeHtml(company.company_name)}</span>`,
         escapeHtml(company.slots_total),
         escapeHtml(taken),
-        escapeHtml(remaining),
+        // escapeHtml(remaining),
         `<span class="${isFull ? "slot-badge-full" : "slot-badge-open"}">
           ${isFull ? "Full" : "Open"}
         </span>`,
@@ -166,7 +169,7 @@ function renderCompanies(companies) {
       order: [[0, "asc"]],
       deferRender: true,
       columnDefs: [
-        { orderable: false, targets: 4 },
+        { orderable: false, targets: 3 },
         { className: "align-middle", targets: "_all" },
       ],
       createdRow: function (row, rowData, dataIndex) {
@@ -239,11 +242,23 @@ function renderSelectedCompanies() {
   $("#choice-3").text(selectedCompanies[2]?.company_name || "-");
 }
 
-function setSelectedCvFile(file) {
-  selectedCvFile = file || null;
-  $("#cv-file-name").text(
-    selectedCvFile ? selectedCvFile.name : "No file selected"
+function setSelectedFiles() {
+  selectedApplicationLetterFile =
+    document.getElementById("application-letter")?.files?.[0] || null;
+
+  selectedCvFile = document.getElementById("cv-file")?.files?.[0] || null;
+
+  selectedTcgFile = document.getElementById("tcg-file")?.files?.[0] || null;
+
+  $("#application-letter-name").text(
+    selectedApplicationLetterFile
+      ? selectedApplicationLetterFile.name
+      : "No file"
   );
+
+  $("#cv-file-name").text(selectedCvFile ? selectedCvFile.name : "No file");
+
+  $("#tcg-file-name").text(selectedTcgFile ? selectedTcgFile.name : "No file");
 }
 
 function openCompanyModal(companyId) {
@@ -317,9 +332,14 @@ function clearSelectedCompanies() {
   clearPortalMessage();
 }
 
-async function uploadCvFile() {
-  if (!selectedCvFile) {
-    throw new Error("Please upload your CV file.");
+async function uploadFiles() {
+  const applicationLetterFile =
+    document.getElementById("application-letter")?.files?.[0] || null;
+  const cvFile = document.getElementById("cv-file")?.files?.[0] || null;
+  const tcgFile = document.getElementById("tcg-file")?.files?.[0] || null;
+
+  if (!applicationLetterFile || !cvFile || !tcgFile) {
+    throw new Error("Please upload your Application Letter, CV, and TCG.");
   }
 
   if (
@@ -329,6 +349,25 @@ async function uploadCvFile() {
   ) {
     throw new Error("Student information is incomplete.");
   }
+
+  if (!loggedInUser || !loggedInUser.email) {
+    throw new Error("Logged in user email is missing.");
+  }
+
+  if (!selectedCompanies || !selectedCompanies.length) {
+    throw new Error("Please select at least 1 company.");
+  }
+
+  const termYear =
+    document.getElementById("term-year")?.textContent?.trim() || "";
+
+  if (!termYear) {
+    throw new Error("Term and Year is required.");
+  }
+
+  const choice1 = selectedCompanies[0]?.company_name || "";
+  const choice2 = selectedCompanies[1]?.company_name || "";
+  const choice3 = selectedCompanies[2]?.company_name || "";
 
   const fileToBase64 = (file) =>
     new Promise((resolve, reject) => {
@@ -340,7 +379,7 @@ async function uploadCvFile() {
           const base64 = result.includes(",") ? result.split(",")[1] : result;
 
           if (!base64) {
-            reject(new Error("Failed to read file content."));
+            reject(new Error(`Failed to read file content for ${file.name}.`));
             return;
           }
 
@@ -351,45 +390,108 @@ async function uploadCvFile() {
       };
 
       reader.onerror = function () {
-        reject(new Error("Failed to read the selected file."));
+        reject(new Error(`Failed to read the selected file: ${file.name}`));
       };
 
       reader.readAsDataURL(file);
     });
 
-  const base64File = await fileToBase64(selectedCvFile);
-
-  const payload = {
-    student_no: currentStudent.student_no,
-    fullname: currentStudent.fullname,
-    file_name: selectedCvFile.name,
-    mime_type: selectedCvFile.type || "",
-    file_base64: base64File,
-  };
-
-  const response = await fetch(APPS_SCRIPT_UPLOAD_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "text/plain;charset=utf-8",
+  const documentFiles = [
+    {
+      label: "application_letter",
+      file: applicationLetterFile,
     },
-    body: JSON.stringify(payload),
-  });
+    {
+      label: "cv",
+      file: cvFile,
+    },
+    {
+      label: "tcg",
+      file: tcgFile,
+    },
+  ];
 
-  const result = await response.json();
+  const uploadedFiles = [];
 
-  if (!response.ok) {
-    throw new Error(result?.message || "Failed to upload CV file.");
+  for (let i = 0; i < selectedCompanies.length; i++) {
+    const company = selectedCompanies[i];
+    const choiceNumber = i + 1;
+
+    if (!company || !company.company_name) {
+      continue;
+    }
+
+    for (const item of documentFiles) {
+      const base64File = await fileToBase64(item.file);
+
+      const payload = {
+        email: loggedInUser.email,
+        term_year: termYear,
+        student_no: currentStudent.student_no,
+        fullname: currentStudent.fullname,
+
+        choice_1: choice1,
+        choice_2: choice2,
+        choice_3: choice3,
+
+        company_name: company.company_name,
+        choice_number: choiceNumber,
+        document_type: item.label,
+
+        file_name: item.file.name,
+        mime_type: item.file.type || "",
+        file_base64: base64File,
+      };
+
+      const response = await fetch(APPS_SCRIPT_UPLOAD_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "text/plain;charset=utf-8",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          result?.message ||
+            `Failed to upload ${item.label.replaceAll("_", " ")} for ${
+              company.company_name
+            }.`
+        );
+      }
+
+      if (!result || !result.success) {
+        throw new Error(
+          result?.message ||
+            `${item.label.replaceAll("_", " ")} upload failed for ${
+              company.company_name
+            }.`
+        );
+      }
+
+      if (!result.file_url) {
+        throw new Error(
+          `Upload succeeded but no file URL was returned for ${item.label.replaceAll(
+            "_",
+            " "
+          )} - ${company.company_name}.`
+        );
+      }
+
+      uploadedFiles.push({
+        choice_number: choiceNumber,
+        company_name: company.company_name,
+        type: item.label,
+        file_url: result.file_url,
+        file_id: result.file_id || null,
+        file_name: result.file_name || item.file.name,
+      });
+    }
   }
 
-  if (!result || !result.success) {
-    throw new Error(result?.message || "CV upload failed.");
-  }
-
-  if (!result.file_url) {
-    throw new Error("Upload succeeded but no file URL was returned.");
-  }
-
-  return result.file_url;
+  return uploadedFiles;
 }
 
 async function refreshCompanies() {
@@ -420,8 +522,16 @@ async function savePreferences() {
     return;
   }
 
-  if (!selectedCvFile) {
-    showPortalMessage("warning", "Please upload your CV file.");
+  const applicationLetterFile =
+    document.getElementById("application-letter")?.files?.[0] || null;
+  const cvFile = document.getElementById("cv-file")?.files?.[0] || null;
+  const tcgFile = document.getElementById("tcg-file")?.files?.[0] || null;
+
+  if (!applicationLetterFile || !cvFile || !tcgFile) {
+    showPortalMessage(
+      "warning",
+      "Please upload your Application Letter, CV, and TCG."
+    );
     return;
   }
 
@@ -439,16 +549,49 @@ async function savePreferences() {
       return;
     }
 
-    const cvFileUrl = await uploadCvFile();
+    const uploadedFiles = await uploadFiles();
+
+    if (!uploadedFiles || !uploadedFiles.length) {
+      throw new Error("No files were uploaded.");
+    }
 
     const companyIds = selectedCompanies.map((company) => Number(company.id));
+
+    const choiceFiles = selectedCompanies.map((company, index) => {
+      const choiceNumber = index + 1;
+
+      const applicationLetter = uploadedFiles.find(
+        (file) =>
+          Number(file.choice_number) === choiceNumber &&
+          file.type === "application_letter"
+      );
+
+      const cv = uploadedFiles.find(
+        (file) =>
+          Number(file.choice_number) === choiceNumber && file.type === "cv"
+      );
+
+      const tcg = uploadedFiles.find(
+        (file) =>
+          Number(file.choice_number) === choiceNumber && file.type === "tcg"
+      );
+
+      return {
+        choice_rank: choiceNumber,
+        company_id: Number(company.id),
+        company_name: company.company_name,
+        application_letter_url: applicationLetter?.file_url || null,
+        cv_file_url: cv?.file_url || null,
+        tcg_file_url: tcg?.file_url || null,
+      };
+    });
 
     const { data, error } = await supabaseClient.rpc(
       "submit_student_preferences",
       {
         p_student_id: currentStudent.id,
-        p_cv_file_url: cvFileUrl,
         p_company_ids: companyIds,
+        p_choice_files: choiceFiles,
       }
     );
 
@@ -462,10 +605,12 @@ async function savePreferences() {
     }
 
     await refreshCompanies();
+
     showPortalMessage(
       "success",
       data?.message || "Preferences saved successfully."
     );
+
     lockPortalAfterSubmission();
   } catch (error) {
     console.error("Save preferences error:", error);
@@ -494,9 +639,9 @@ async function preloadExistingSubmission(studentId) {
 
   renderSelectedCompanies();
 
-  $("#cv-file-name").text(
-    submission.cv_file_url ? "CV already uploaded" : "No file selected"
-  );
+  $("#application-letter-name").text("Already uploaded");
+  $("#cv-file-name").text("Already uploaded");
+  $("#tcg-file-name").text("Already uploaded");
 
   lockPortalAfterSubmission();
   showPortalMessage("info", "You have already submitted your preferences.");
@@ -532,7 +677,7 @@ async function loadPortal(email) {
   } catch (error) {
     console.error("Portal load error:", error);
     $("#loading-section").addClass("d-none");
-    $("#portal-error-message").text("Failed to load portal.");
+    $("#portal-error-message").text(error?.message || "Failed to load portal.");
     $("#portal-error-section").removeClass("d-none");
   }
 }
@@ -562,13 +707,8 @@ $(document).ready(function () {
     clearSelectedCompanies();
   });
 
-  $("#cv-file").on("change", function (event) {
-    const file =
-      event.target.files && event.target.files[0]
-        ? event.target.files[0]
-        : null;
-
-    setSelectedCvFile(file);
+  $("#application-letter, #cv-file, #tcg-file").on("change", function () {
+    setSelectedFiles();
   });
 
   $("#save-preferences-btn").on("click", function () {
