@@ -2,7 +2,7 @@ const SUPABASE_URL = "https://nzqcmepeoplxpkmvhyvw.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_zc3HjgzA6LkNykZkKOoM8Q_6SqJBj0i";
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const APPS_SCRIPT_UPLOAD_URL =
-  "https://script.google.com/macros/s/AKfycbx7Z4pfaA0ZsEilxydVGEcWETq0gCo7NcTOn9rAatOa9hQq04bSM3pt7V4H2EGq7-5d/exec";
+  "https://script.google.com/macros/s/AKfycbwBIadfjjUq3fmgnT8thpamqbovcr4Ab7kSkQO0jYBjOQVi9w8H7gvXOstjSYlAtu7m/exec";
 
 let companiesTable = null;
 
@@ -173,12 +173,14 @@ function renderCompaniesMobile(companies) {
   }
 
   pagedCompanies.forEach((company) => {
+    const slots = Number(company.slots_total);
+    const isDisabled = isNaN(slots) || slots <= 0;
     const applicants = Number(company.total_applicants || 0);
 
     $mobileList.append(`
-      <div class="card border-0 shadow-sm rounded-4 mb-3 company-card ${
-        hasSubmitted ? "opacity-50" : ""
-      }" data-id="${company.id}">
+     <div class="card border-0 shadow-sm rounded-4 mb-3 company-card ${
+       hasSubmitted || isDisabled ? "opacity-50" : ""
+     }" data-id="${company.id}">
         <div class="card-body p-3">
           <div class="mb-3">
             <h6 class="fw-semibold mb-1">${escapeHtml(
@@ -206,12 +208,12 @@ function renderCompaniesMobile(companies) {
 
           <button
             class="btn btn-sm w-100 slot-badge-open select-company-btn ${
-              hasSubmitted ? "disabled" : ""
+              hasSubmitted || isDisabled ? "disabled" : ""
             }"
             data-id="${company.id}"
-            ${hasSubmitted ? "disabled" : ""}
+            ${hasSubmitted || isDisabled ? "disabled" : ""}
           >
-            Select
+            ${isDisabled ? "Not yet final" : "Select"}
           </button>
         </div>
       </div>
@@ -288,6 +290,7 @@ function syncCompaniesView(resetMobilePage = false) {
 
 function renderCompanies(companies) {
   latestCompanies = companies || [];
+
   const rows = [];
 
   if (!latestCompanies.length) {
@@ -299,6 +302,11 @@ function renderCompanies(companies) {
     ]);
   } else {
     latestCompanies.forEach((company) => {
+      console.log("Rendering company:", company);
+
+      const slots = Number(company.slots_total);
+      const isDisabled = isNaN(slots) || slots <= 0;
+
       const applicants = isNaN(Number(company.total_applicants))
         ? 0
         : Number(company.total_applicants);
@@ -308,10 +316,11 @@ function renderCompanies(companies) {
         escapeHtml(company.slots_total),
         escapeHtml(applicants),
         `<button 
-          class="btn btn-sm slot-badge-open select-company-btn"
+          class="btn btn-sm slot-badge-open select-company-btn ${isDisabled ? "disabled" : ""}"
           data-id="${company.id}"
+          ${isDisabled ? "disabled" : ""}
         >
-          Select
+          ${isDisabled ? "Not yet final" : "Select"}
         </button>`,
       ]);
     });
@@ -322,7 +331,11 @@ function renderCompanies(companies) {
       data: rows,
       pageLength: 10,
       lengthMenu: [5, 10, 25, 50],
-      order: [[0, "asc"]],
+      // order: [[0, "asc"]],
+      order: [
+        [0, "asc"],
+        [1, "desc"],
+      ],
       deferRender: true,
       columnDefs: [
         { orderable: false, targets: 3 },
@@ -336,7 +349,17 @@ function renderCompanies(companies) {
           return;
         }
 
-        $(row).addClass("company-row").attr("data-id", company.id);
+        const slots = Number(company.slots_total);
+        const isDisabled = isNaN(slots) || slots <= 0;
+
+        if (isDisabled) {
+          $(row)
+            .removeClass("company-row")
+            .addClass("opacity-50")
+            .removeAttr("data-id");
+        } else {
+          $(row).addClass("company-row").attr("data-id", company.id);
+        }
       },
       language: {
         search: "Search:",
@@ -624,8 +647,10 @@ async function savePreferences() {
 
     hasSubmitted = true;
     lockPortalAfterSubmission();
-    closeSaveConfirmModal();
-    showPortalMessage("success", "Preferences submitted successfully.");
+    // closeSaveConfirmModal();
+    // showPortalMessage("success", "Preferences submitted successfully.");
+
+    setSaveModalSuccessState();
   } catch (error) {
     console.error("Save preferences error:", error);
 
@@ -688,6 +713,26 @@ function setSaveModalLoadingState() {
   $("#save-confirm-content").addClass("d-none");
   $("#save-loading-content").removeClass("d-none");
   $("#save-confirm-actions").addClass("d-none");
+}
+
+function setSaveModalSuccessState() {
+  $("#save-confirm-content").addClass("d-none");
+  $("#save-loading-content").addClass("d-none");
+  $("#save-confirm-actions").addClass("d-none");
+  $("#save-success-content").removeClass("d-none");
+
+  let seconds = 5;
+  $("#logout-countdown").text(seconds);
+
+  const interval = setInterval(() => {
+    seconds--;
+    $("#logout-countdown").text(seconds);
+
+    if (seconds <= 0) {
+      clearInterval(interval);
+      logoutUser();
+    }
+  }, 1000);
 }
 
 function closeSaveConfirmModal() {
@@ -778,6 +823,7 @@ $(document).ready(function () {
 
   $(document).on("click", ".company-card", function (e) {
     // if ($(e.target).closest(".select-company-btn").length) return;
+    e.stopPropagation();
     if ($(this).hasClass("opacity-50")) return;
 
     const companyId = $(this).attr("data-id");

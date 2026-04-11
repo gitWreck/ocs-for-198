@@ -14,6 +14,8 @@
       rel="stylesheet"
     />
 
+    <link rel="icon" type="image/png" href="CFNR-logo-final.png" />
+
     <style>
       :root {
         --portal-maroon: #8b1539;
@@ -474,7 +476,12 @@
                     for="submitted-documents"
                     class="form-label fw-semibold"
                   >
-                    Submitted Documents
+                    Submitted Documents <br />
+                    (Filename format:
+                    <em
+                      >Lastname_Firstname_FOR198_documents.pdf / Keep it under
+                      10MB</em
+                    >)
                   </label>
                   <input
                     type="file"
@@ -617,6 +624,17 @@
               <div class="text-muted small">
                 Please wait while we save your selected HIs and upload your
                 file.
+              </div>
+            </div>
+
+            <div id="save-success-content" class="d-none text-center py-3">
+              <div class="mb-3 text-success">
+                <i class="bi bi-check-circle-fill fs-1"></i>
+              </div>
+              <div class="fw-semibold">Submission Successful!</div>
+              <div class="text-muted small">
+                Logging you out in
+                <span id="logout-countdown">5</span> seconds...
               </div>
             </div>
           </div>
