@@ -147,7 +147,7 @@ function renderCompaniesMobile(companies) {
   const totalItems = mobileCompaniesFiltered.length;
   const totalPages = Math.max(
     1,
-    Math.ceil(totalItems / MOBILE_COMPANIES_PER_PAGE),
+    Math.ceil(totalItems / MOBILE_COMPANIES_PER_PAGE)
   );
 
   if (mobileCompaniesPage > totalPages) {
@@ -184,7 +184,7 @@ function renderCompaniesMobile(companies) {
         <div class="card-body p-3">
           <div class="mb-3">
             <h6 class="fw-semibold mb-1">${escapeHtml(
-              company.company_name,
+              company.company_name
             )}</h6>
             <small class="text-muted">Host Institution</small>
           </div>
@@ -194,7 +194,7 @@ function renderCompaniesMobile(companies) {
               <div class="border rounded-3 p-2 bg-light h-100">
                 <div class="small text-muted">Total Slots</div>
                 <div class="fw-semibold">${escapeHtml(
-                  company.slots_total,
+                  company.slots_total
                 )}</div>
               </div>
             </div>
@@ -266,7 +266,7 @@ function getFilteredCompanies(keyword = "") {
   return latestCompanies.filter((company) =>
     String(company.company_name || "")
       .toLowerCase()
-      .includes(keyword),
+      .includes(keyword)
   );
 }
 
@@ -302,7 +302,7 @@ function renderCompanies(companies) {
     ]);
   } else {
     latestCompanies.forEach((company) => {
-      console.log("Rendering company:", company);
+      // console.log("Rendering company:", company);
 
       const slots = Number(company.slots_total);
       const isDisabled = isNaN(slots) || slots <= 0;
@@ -316,7 +316,9 @@ function renderCompanies(companies) {
         escapeHtml(company.slots_total),
         escapeHtml(applicants),
         `<button 
-          class="btn btn-sm slot-badge-open select-company-btn ${isDisabled ? "disabled" : ""}"
+          class="btn btn-sm slot-badge-open select-company-btn ${
+            isDisabled ? "disabled" : ""
+          }"
           data-id="${company.id}"
           ${isDisabled ? "disabled" : ""}
         >
@@ -409,13 +411,13 @@ function setSelectedFiles() {
     document.getElementById("submitted-documents")?.files?.[0] || null;
 
   $("#submitted-documents-name").text(
-    selectedSubmittedFile ? selectedSubmittedFile.name : "No file",
+    selectedSubmittedFile ? selectedSubmittedFile.name : "No file"
   );
 }
 
 function openCompanyModal(companyId) {
   const company = currentCompanies.find(
-    (item) => String(item.id) === String(companyId),
+    (item) => String(item.id) === String(companyId)
   );
 
   if (!company) return;
@@ -427,7 +429,7 @@ function openCompanyModal(companyId) {
   $("#modal-company-slots").text(
     `${company.slots_total || 0} slot(s) • ${
       company.total_applicants || 0
-    } applicant(s)`,
+    } applicant(s)`
   );
 
   if (!companyModalInstance) {
@@ -442,7 +444,7 @@ function selectCompanyFromModal() {
   const companyId = $("#modal-company-id").val();
 
   const company = currentCompanies.find(
-    (item) => String(item.id) === String(companyId),
+    (item) => String(item.id) === String(companyId)
   );
 
   if (!company) {
@@ -451,7 +453,7 @@ function selectCompanyFromModal() {
   }
 
   const alreadySelected = selectedCompanies.find(
-    (item) => String(item.id) === String(company.id),
+    (item) => String(item.id) === String(company.id)
   );
 
   if (alreadySelected) {
@@ -603,7 +605,7 @@ async function savePreferences() {
     if (existingSubmission) {
       showPortalMessage(
         "warning",
-        "You have already submitted your preferences.",
+        "You have already submitted your preferences."
       );
       hasSubmitted = true;
       lockPortalAfterSubmission();
@@ -666,7 +668,7 @@ async function savePreferences() {
 
     if (
       String(error?.message || "").includes(
-        "uq_student_choices_student_company",
+        "uq_student_choices_student_company"
       )
     ) {
       message = "You selected the same company more than once.";
@@ -754,15 +756,15 @@ async function preloadExistingSubmission(studentId) {
     .sort((a, b) => a.choice_rank - b.choice_rank)
     .map((choice) =>
       currentCompanies.find(
-        (company) => String(company.id) === String(choice.company_id),
-      ),
+        (company) => String(company.id) === String(choice.company_id)
+      )
     )
     .filter(Boolean);
 
   renderSelectedCompanies();
 
   $("#submitted-documents-name").text(
-    submission.file_url ? "Already uploaded" : "No file",
+    submission.file_url ? "Already uploaded" : "No file"
   );
 
   lockPortalAfterSubmission();
@@ -840,7 +842,7 @@ $(document).ready(function () {
   $(document).on("click", "#mobile-companies-next", function () {
     const totalPages = Math.max(
       1,
-      Math.ceil(mobileCompaniesFiltered.length / MOBILE_COMPANIES_PER_PAGE),
+      Math.ceil(mobileCompaniesFiltered.length / MOBILE_COMPANIES_PER_PAGE)
     );
 
     if (mobileCompaniesPage < totalPages) {
