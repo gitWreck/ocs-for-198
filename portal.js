@@ -508,6 +508,10 @@ function unlockPortalForEditing() {
   $("#clear-choices-btn")
     .prop("disabled", false)
     .text("Clear Choices");
+  $("#new-application-btn")
+    .addClass("d-none")
+    .prop("disabled", false)
+    .text("New Application");
   $(".company-row").css("pointer-events", "").removeClass("opacity-50");
   $(".company-card").css("pointer-events", "").removeClass("opacity-50");
   $("#select-company-btn").prop("disabled", false);
@@ -528,7 +532,7 @@ async function startNewApplication() {
 
   if (!confirmed) return;
 
-  $("#clear-choices-btn").prop("disabled", true).text("Starting...");
+  $("#new-application-btn").prop("disabled", true).text("Starting...");
   clearPortalMessage();
 
   try {
@@ -555,18 +559,13 @@ async function startNewApplication() {
       "danger",
       error?.message || "Failed to start a new application."
     );
-    $("#clear-choices-btn")
+    $("#new-application-btn")
       .prop("disabled", false)
       .text("New Application");
   }
 }
 
 function handleClearChoices() {
-  if (hasSubmitted) {
-    startNewApplication();
-    return;
-  }
-
   clearSelectedCompanies();
 }
 
@@ -680,6 +679,10 @@ function lockPortalAfterSubmission() {
   $("#save-preferences-btn").prop("disabled", true).text("Already Submitted");
   $("#submitted-documents").prop("disabled", true);
   $("#clear-choices-btn")
+    .prop("disabled", true)
+    .text("Clear Choices");
+  $("#new-application-btn")
+    .removeClass("d-none")
     .prop("disabled", false)
     .text("New Application");
   $(".company-row").css("pointer-events", "none").addClass("opacity-50");
@@ -953,6 +956,10 @@ $(document).ready(function () {
 
   $("#clear-choices-btn").on("click", function () {
     handleClearChoices();
+  });
+
+  $("#new-application-btn").on("click", function () {
+    startNewApplication();
   });
 
   $("#submitted-documents").on("change", function () {
