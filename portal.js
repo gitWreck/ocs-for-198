@@ -90,7 +90,9 @@ async function getStudentByEmail(email) {
 async function getCompanies() {
   const { data, error } = await supabaseClient
     .from("v_companies_with_slots")
-    .select("id, company_name, slots_total, total_applicants, is_active")
+    .select(
+      "id, company_name, slots_total, other_requirements, total_applicants, is_active"
+    )
     .eq("is_active", true)
     .order("company_name", { ascending: true });
 
@@ -176,6 +178,7 @@ function renderCompaniesMobile(companies) {
     const slots = Number(company.slots_total);
     const isDisabled = isNaN(slots) || slots <= 0;
     const applicants = Number(company.total_applicants || 0);
+    const otherRequirements = company.other_requirements || "-";
 
     $mobileList.append(`
      <div class="card border-0 shadow-sm rounded-4 mb-3 company-card ${
@@ -204,6 +207,13 @@ function renderCompaniesMobile(companies) {
                 <div class="fw-semibold">${escapeHtml(applicants)}</div>
               </div>
             </div>
+          </div>
+
+          <div class="border rounded-3 p-2 bg-light mb-3">
+            <div class="small text-muted">Other Requirements</div>
+            <div class="small fw-semibold">${escapeHtml(
+              otherRequirements
+            )}</div>
           </div>
 
           <button
@@ -264,7 +274,8 @@ function getFilteredCompanies(keyword = "") {
   if (!keyword) return [...latestCompanies];
 
   return latestCompanies.filter((company) =>
-    String(company.company_name || "")
+    [company.company_name, company.other_requirements]
+      .join(" ")
       .toLowerCase()
       .includes(keyword)
   );
@@ -299,6 +310,7 @@ function renderCompanies(companies) {
       "",
       "",
       "",
+      "",
     ]);
   } else {
     latestCompanies.forEach((company) => {
@@ -310,11 +322,15 @@ function renderCompanies(companies) {
       const applicants = isNaN(Number(company.total_applicants))
         ? 0
         : Number(company.total_applicants);
+      const otherRequirements = company.other_requirements || "-";
 
       rows.push([
         `<span class="fw-semibold">${escapeHtml(company.company_name)}</span>`,
         escapeHtml(company.slots_total),
         escapeHtml(applicants),
+        `<span class="requirements-cell">${escapeHtml(
+          otherRequirements
+        )}</span>`,
         `<button 
           class="btn btn-sm slot-badge-open select-company-btn ${
             isDisabled ? "disabled" : ""
@@ -340,8 +356,9 @@ function renderCompanies(companies) {
       ],
       deferRender: true,
       columnDefs: [
-        { orderable: false, targets: 3 },
+        { orderable: false, targets: 4 },
         { className: "align-middle", targets: "_all" },
+        { className: "text-start", targets: 3 },
       ],
       createdRow: function (row, rowData, dataIndex) {
         const company = latestCompanies[dataIndex];
@@ -424,7 +441,7 @@ function openCompanyModal(companyId) {
 
   $("#modal-company-id").val(company.id);
   $("#modal-company-name").text(company.company_name || "-");
-  // $("#modal-company-description").text("No description available.");
+  $("#modal-company-requirements").text(company.other_requirements || "-");
   // $("#modal-company-address").text("-");
   $("#modal-company-slots").text(
     `${company.slots_total || 0} slot(s) • ${
@@ -479,6 +496,75 @@ function clearSelectedCompanies() {
   selectedCompanies = [];
   renderSelectedCompanies();
   clearPortalMessage();
+}
+
+function unlockPortalForEditing() {
+  $("#save-preferences-btn").prop("disabled", false).text("Save Preferences");
+  $("#submitted-documents").prop("disabled", false).val("");
+  $("#submitted-documents-name").text("No file");
+  $("#clear-choices-btn")
+    .prop("disabled", false)
+    .text("Clear Choices");
+  $(".company-row").css("pointer-events", "").removeClass("opacity-50");
+  $(".company-card").css("pointer-events", "").removeClass("opacity-50");
+  $("#select-company-btn").prop("disabled", false);
+
+  selectedSubmittedFile = null;
+  syncCompaniesView(false);
+}
+
+async function clearSubmittedPreferences() {
+  if (!currentStudent || !loggedInUser?.email) {
+    showPortalMessage("danger", "No student loaded.");
+    return;
+  }
+
+  const confirmed = window.confirm(
+    "Clear your submitted HI choices? You will need to upload your PDF and submit again."
+  );
+
+  if (!confirmed) return;
+
+  $("#clear-choices-btn").prop("disabled", true).text("Clearing...");
+  clearPortalMessage();
+
+  try {
+    const { error } = await supabaseClient.rpc("clear_student_preferences", {
+      p_student_id: currentStudent.id,
+      p_student_email: loggedInUser.email,
+    });
+
+    if (error) throw error;
+
+    selectedCompanies = [];
+    hasSubmitted = false;
+    renderSelectedCompanies();
+    await refreshCompanies();
+    unlockPortalForEditing();
+
+    showPortalMessage(
+      "success",
+      "Your submitted choices were cleared. You can submit new preferences now."
+    );
+  } catch (error) {
+    console.error("Clear submitted preferences error:", error);
+    showPortalMessage(
+      "danger",
+      error?.message || "Failed to clear submitted choices."
+    );
+    $("#clear-choices-btn")
+      .prop("disabled", false)
+      .text("Clear Submitted Choices");
+  }
+}
+
+function handleClearChoices() {
+  if (hasSubmitted) {
+    clearSubmittedPreferences();
+    return;
+  }
+
+  clearSelectedCompanies();
 }
 
 async function uploadSubmissionFile() {
@@ -590,7 +676,9 @@ async function refreshCompanies() {
 function lockPortalAfterSubmission() {
   $("#save-preferences-btn").prop("disabled", true).text("Already Submitted");
   $("#submitted-documents").prop("disabled", true);
-  $("#clear-choices-btn").prop("disabled", true);
+  $("#clear-choices-btn")
+    .prop("disabled", false)
+    .text("Clear Submitted Choices");
   $(".company-row").css("pointer-events", "none").addClass("opacity-50");
   $(".company-card").css("pointer-events", "none").addClass("opacity-50");
   $(".select-company-btn").prop("disabled", true);
@@ -856,7 +944,7 @@ $(document).ready(function () {
   });
 
   $("#clear-choices-btn").on("click", function () {
-    clearSelectedCompanies();
+    handleClearChoices();
   });
 
   $("#submitted-documents").on("change", function () {

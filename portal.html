@@ -156,6 +156,12 @@
         background-color: rgba(4, 84, 60, 0.05);
       }
 
+      #companies-table td:nth-child(4),
+      #companies-table th:nth-child(4) {
+        min-width: 320px;
+        white-space: normal;
+      }
+
       #companies-table td:nth-child(5),
       #companies-table th:nth-child(5) {
         min-width: 150px;
@@ -333,13 +339,13 @@
   </head>
   <body>
     <nav class="navbar navbar-expand-lg portal-navbar shadow-sm">
-      <div class="container">
+      <div class="container-fluid px-4 px-xxl-5">
         <span class="navbar-brand">FOR 198 Internship HI Portal</span>
         <button id="logout-btn" class="btn btn-sm btn-logout">Logout</button>
       </div>
     </nav>
 
-    <div class="container py-4 py-lg-5">
+    <div class="container-fluid px-4 px-xxl-5 py-4 py-lg-5">
       <div class="card hero-card rounded-4 shadow-sm mb-4">
         <div class="card-body p-4 p-lg-5">
           <div class="row align-items-center g-3">
@@ -363,14 +369,17 @@
                     <strong>Application Letter, CV and TCG (PDF) merged</strong>
                   </li>
                   <li>Click <strong>Save Preferences</strong> to submit</li>
-                  <li>Submission is <strong>one-time only</strong></li>
+                  <li>
+                    Use <strong>Clear Submitted Choices</strong> if you need to
+                    reset and submit again
+                  </li>
                 </ul>
               </div>
             </div>
 
             <div class="col-lg-4 text-lg-end">
               <span class="badge rounded-pill bg-light text-dark px-3 py-2">
-                Simple • Realtime Slots • One Submission
+                Simple • Realtime Slots • Resettable Submission
               </span>
             </div>
           </div>
@@ -403,7 +412,7 @@
 
       <div id="portal-section" class="d-none">
         <div class="row g-4">
-          <div class="col-xl-4">
+          <div class="col-xl-3">
             <div class="card portal-card mb-4">
               <div class="card-body p-4">
                 <div class="section-title mb-1">Student Information</div>
@@ -517,7 +526,7 @@
             </div>
           </div>
 
-          <div class="col-xl-8">
+          <div class="col-xl-9">
             <div class="card portal-card mb-4">
               <div class="card-body p-4">
                 <div
@@ -554,6 +563,7 @@
                           <th>HI name</th>
                           <th>Total Slots</th>
                           <th>No. of Applicants</th>
+                          <th>Other Requirements</th>
                           <th>Action</th>
                         </tr>
                       </thead>
@@ -661,6 +671,11 @@
               <div class="info-label">Company Name</div>
               <div id="modal-company-name" class="info-value">-</div>
             </div>
+
+            <div class="mb-3">
+              <div class="info-label">Other Requirements</div>
+              <div id="modal-company-requirements" class="info-value">-</div>
+            </div>
             <!-- 
             <div class="mb-3">
               <div class="info-label">Description</div>
@@ -727,7 +742,8 @@
                 preferences?
               </p>
               <p class="text-muted small mb-0">
-                Once submitted, you will no longer be able to edit your choices.
+                After submitting, you can clear your submitted choices and
+                submit again if needed.
               </p>
             </div>
 
