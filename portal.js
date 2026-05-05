@@ -107,8 +107,11 @@ async function getCompanies() {
 async function getStudentSubmission(studentId) {
   const { data, error } = await supabaseClient
     .from("student_submissions")
-    .select("id, student_id, status, file_url, submitted_at, updated_at")
+    .select(
+      "id, student_id, status, file_url, is_active, submitted_at, updated_at"
+    )
     .eq("student_id", studentId)
+    .eq("is_active", true)
     .maybeSingle();
 
   if (error) {
@@ -119,11 +122,11 @@ async function getStudentSubmission(studentId) {
   return data || null;
 }
 
-async function getStudentChoices(studentId) {
+async function getStudentChoices(submissionId) {
   const { data, error } = await supabaseClient
     .from("student_choices")
     .select("id, submission_id, student_id, company_id, choice_rank")
-    .eq("student_id", studentId)
+    .eq("submission_id", submissionId)
     .order("choice_rank", { ascending: true });
 
   if (error) {
@@ -513,23 +516,23 @@ function unlockPortalForEditing() {
   syncCompaniesView(false);
 }
 
-async function clearSubmittedPreferences() {
+async function startNewApplication() {
   if (!currentStudent || !loggedInUser?.email) {
     showPortalMessage("danger", "No student loaded.");
     return;
   }
 
   const confirmed = window.confirm(
-    "Clear your submitted HI choices? You will need to upload your PDF and submit again."
+    "Start a new application? Your previous submitted choices will stay saved as history, and you will need to upload your PDF and submit again."
   );
 
   if (!confirmed) return;
 
-  $("#clear-choices-btn").prop("disabled", true).text("Clearing...");
+  $("#clear-choices-btn").prop("disabled", true).text("Starting...");
   clearPortalMessage();
 
   try {
-    const { error } = await supabaseClient.rpc("clear_student_preferences", {
+    const { error } = await supabaseClient.rpc("start_new_student_application", {
       p_student_id: currentStudent.id,
       p_student_email: loggedInUser.email,
     });
@@ -544,23 +547,23 @@ async function clearSubmittedPreferences() {
 
     showPortalMessage(
       "success",
-      "Your submitted choices were cleared. You can submit new preferences now."
+      "A new application was started. Your previous submission is kept as history."
     );
   } catch (error) {
-    console.error("Clear submitted preferences error:", error);
+    console.error("Start new application error:", error);
     showPortalMessage(
       "danger",
-      error?.message || "Failed to clear submitted choices."
+      error?.message || "Failed to start a new application."
     );
     $("#clear-choices-btn")
       .prop("disabled", false)
-      .text("Clear Submitted Choices");
+      .text("New Application");
   }
 }
 
 function handleClearChoices() {
   if (hasSubmitted) {
-    clearSubmittedPreferences();
+    startNewApplication();
     return;
   }
 
@@ -678,7 +681,7 @@ function lockPortalAfterSubmission() {
   $("#submitted-documents").prop("disabled", true);
   $("#clear-choices-btn")
     .prop("disabled", false)
-    .text("Clear Submitted Choices");
+    .text("New Application");
   $(".company-row").css("pointer-events", "none").addClass("opacity-50");
   $(".company-card").css("pointer-events", "none").addClass("opacity-50");
   $(".select-company-btn").prop("disabled", true);
@@ -709,7 +712,9 @@ async function savePreferences() {
         status: "submitted",
         file_url: uploadedFile.file_url,
       })
-      .select("id, student_id, status, file_url, submitted_at, updated_at")
+      .select(
+        "id, student_id, status, file_url, is_active, submitted_at, updated_at"
+      )
       .single();
 
     if (submissionError) {
@@ -747,7 +752,10 @@ async function savePreferences() {
     let message = error?.message || "Failed to save preferences.";
 
     if (
-      String(error?.message || "").includes("uq_student_submissions_student_id")
+      String(error?.message || "").includes(
+        "uq_student_submissions_student_id"
+      ) ||
+      String(error?.message || "").includes("uq_student_submissions_one_active")
     ) {
       message = "You have already submitted your preferences.";
       hasSubmitted = true;
@@ -838,7 +846,7 @@ async function preloadExistingSubmission(studentId) {
 
   hasSubmitted = true;
 
-  const choices = await getStudentChoices(studentId);
+  const choices = await getStudentChoices(submission.id);
 
   selectedCompanies = choices
     .sort((a, b) => a.choice_rank - b.choice_rank)
