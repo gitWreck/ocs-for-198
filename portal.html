@@ -264,6 +264,63 @@
         color: #0d6efd;
         font-size: 18px;
       }
+
+      .previous-applications-card {
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 1px solid #dbeafe;
+        background-color: #1d4ed8;
+      }
+
+      .previous-applications-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 24px rgba(37, 99, 235, 0.18);
+        border-color: rgba(37, 99, 235, 0.35);
+      }
+
+      .previous-applications-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.14);
+        color: #fff;
+        font-size: 18px;
+      }
+
+      .previous-applications-btn {
+        background-color: #1d4ed8;
+        border-color: #1d4ed8;
+        border-radius: 1.25rem;
+        color: #fff;
+        font-weight: 700;
+        box-shadow: 0 10px 24px rgba(37, 99, 235, 0.18);
+      }
+
+      .previous-applications-btn:hover,
+      .previous-applications-btn:focus {
+        background-color: #1e40af;
+        border-color: #1e40af;
+        color: #fff;
+        transform: translateY(-2px);
+        box-shadow: 0 12px 24px rgba(37, 99, 235, 0.24);
+      }
+
+      .previous-application-item {
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        padding: 14px 16px;
+        background: #ffffff;
+      }
+
+      .previous-application-choice {
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 10px 12px;
+        background: #f8fafc;
+      }
       .hi-status-modal {
         background: #ffffff;
       }
@@ -466,6 +523,16 @@
               class="btn new-application-btn w-100 mb-4 py-3 d-none"
             >
               New Application
+            </button>
+
+            <button
+              id="view-previous-applications-btn"
+              type="button"
+              data-bs-toggle="modal"
+              data-bs-target="#previousApplicationsModal"
+              class="btn previous-applications-btn w-100 mb-4 py-3"
+            >
+              View Previous Applications
             </button>
 
             <div
@@ -925,6 +992,67 @@
       </div>
     </div>
 
+    <div
+      class="modal fade"
+      id="previousApplicationsModal"
+      tabindex="-1"
+      aria-labelledby="previousApplicationsModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+          <div class="modal-header border-0 pb-0">
+            <div>
+              <h5
+                class="modal-title fw-bold mb-1"
+                id="previousApplicationsModalLabel"
+              >
+                Previous Applications
+              </h5>
+              <div class="text-muted small">
+                View applications that were replaced by a new submission
+              </div>
+            </div>
+
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+
+          <div class="modal-body pt-3">
+            <div
+              id="previous-applications-loading"
+              class="d-none text-center py-4"
+            >
+              <div
+                class="spinner-border spinner-border-sm text-primary mb-2"
+              ></div>
+              <div class="small text-muted">Loading previous applications...</div>
+            </div>
+
+            <div
+              id="previous-applications-error"
+              class="alert alert-danger d-none"
+            ></div>
+
+            <div
+              id="previous-applications-empty"
+              class="d-none text-center py-4"
+            >
+              <div class="text-muted">
+                No previous application found for your account.
+              </div>
+            </div>
+
+            <div id="previous-applications-list" class="d-none"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -934,5 +1062,6 @@
 
     <script src="portal.js"></script>
     <script src="hi-status-modal.js"></script>
+    <script src="previous-applications-modal.js"></script>
   </body>
 </html>

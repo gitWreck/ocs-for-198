@@ -1,6 +1,5 @@
 const HI_STATUS_SHEET_ID = "1x1b4NjqOAg_rXEwwr5c8EuIhdm8xCUMkuxKlBMyd7Go";
-const HI_STATUS_SHEET_NAME =
-  "ParticipatingHIshighlighted_Student+Options_forReg";
+const HI_STATUS_SHEET_NAME = "STATUS OF APPLICATION";
 
 const HI_STATUS_SHEET_URL = `https://docs.google.com/spreadsheets/d/${HI_STATUS_SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(
   HI_STATUS_SHEET_NAME
@@ -77,6 +76,7 @@ function resetHiStatusModal() {
   $("#hi-status-error").addClass("d-none").text("");
   $("#hi-status-empty").addClass("d-none");
   $("#hi-status-content").addClass("d-none");
+  $(".hi-status-list").empty();
 
   $("#hi-status-fullname").text("-");
   $("#hi-status-email").text("-");
@@ -119,36 +119,61 @@ function showHiStatusEmpty() {
   $("#hi-status-empty").removeClass("d-none");
 }
 
-function renderHiStatusItem(number, hiName, status, remarks) {
-  $(`#hi${number}-name`).text(safeDisplay(hiName));
-  $(`#hi${number}-status-wrap`).html(getStatusBadgeHtml(status));
-  $(`#hi${number}-remarks`).text(safeDisplay(remarks));
+function renderHiStatusItemHtml(number, hiName, status, remarks) {
+  return `
+    <div class="hi-status-item mb-3">
+      <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
+        <div>
+          <div class="small text-muted mb-1">HI Choice ${number}</div>
+          <div class="fw-semibold">${escapeHtml(safeDisplay(hiName))}</div>
+        </div>
+        ${getStatusBadgeHtml(status)}
+      </div>
+      <div class="small text-muted mb-1">Remarks</div>
+      <div>${escapeHtml(safeDisplay(remarks))}</div>
+    </div>
+  `;
 }
 
-function showHiStatusContent(record) {
-  console.log("record:", record);
+function renderHiApplicationHtml(record, index) {
+  return `
+    <div class="hi-application-record mb-4">
+      <div class="fw-bold mb-3">Application ${index + 1}</div>
+      ${renderHiStatusItemHtml(
+        1,
+        record["hi 1"],
+        record["status 1"],
+        record["remarks 1"]
+      )}
+      ${renderHiStatusItemHtml(
+        2,
+        record["hi 2"],
+        record["status 2"],
+        record["remarks 2"]
+      )}
+      ${renderHiStatusItemHtml(
+        3,
+        record["hi 3"],
+        record["status 3"],
+        record["remarks 3"]
+      )}
+    </div>
+  `;
+}
 
-  $("#hi-status-fullname").text(safeDisplay(record.fullname));
-  $("#hi-status-email").text(safeDisplay(record.email));
-  $("#hi-status-student-no").text(safeDisplay(record["student number"]));
+function showHiStatusContent(records) {
+  console.log("records:", records);
 
-  renderHiStatusItem(
-    1,
-    record["hi 1"],
-    record["status 1"],
-    record["remarks 1"]
-  );
-  renderHiStatusItem(
-    2,
-    record["hi 2"],
-    record["status 2"],
-    record["remarks 2"]
-  );
-  renderHiStatusItem(
-    3,
-    record["hi 3"],
-    record["status 3"],
-    record["remarks 3"]
+  const firstRecord = records[0];
+
+  $("#hi-status-fullname").text(safeDisplay(firstRecord.fullname));
+  $("#hi-status-email").text(safeDisplay(firstRecord.email));
+  $("#hi-status-student-no").text(safeDisplay(firstRecord["student number"]));
+
+  $(".hi-status-list").html(
+    records
+      .map((record, index) => renderHiApplicationHtml(record, index))
+      .join("")
   );
 
   $("#hi-status-loading").addClass("d-none");
@@ -209,7 +234,7 @@ async function fetchHiStatusByEmail(email) {
   const normalizedEmail = normalizeEmail(email);
 
   const query = encodeURIComponent(
-    `select * where lower(D) contains '${normalizedEmail}' limit 1`
+    `select * where lower(D) contains '${normalizedEmail}'`
   );
 
   const url = `https://docs.google.com/spreadsheets/d/${HI_STATUS_SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(
@@ -225,11 +250,13 @@ async function fetchHiStatusByEmail(email) {
 
   const rawText = await response.text();
   const parsed = parseGoogleSheetResponse(rawText);
-  const rows = convertSheetRowsToObjects(parsed);
+  const rows = convertSheetRowsToObjects(parsed).filter(
+    (row) => normalizeEmail(row.email) === normalizedEmail
+  );
 
   console.log("rows:", rows);
 
-  return rows[0] || null;
+  return rows;
 }
 async function loadHiStatusModalData() {
   resetHiStatusModal();
@@ -244,14 +271,14 @@ async function loadHiStatusModalData() {
 
     console.log("storedUser:", storedUser);
 
-    const record = await fetchHiStatusByEmail(storedUser.email);
+    const records = await fetchHiStatusByEmail(storedUser.email);
 
-    if (!record) {
+    if (!records.length) {
       showHiStatusEmpty();
       return;
     }
 
-    showHiStatusContent(record);
+    showHiStatusContent(records);
   } catch (error) {
     console.error("HI status modal load error:", error);
     showHiStatusError(error?.message || "Failed to load HI status.");

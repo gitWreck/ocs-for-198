@@ -1,0 +1,166 @@
+function COUNTCOLOR(countRange, colorRef) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var range = sheet.getRange(countRange);
+  var bgColors = range.getBackgrounds();
+  var targetColor = sheet.getRange(colorRef).getBackground();
+  var count = 0;
+  
+  for (var i = 0; i < bgColors.length; i++) {
+    for (var j = 0; j < bgColors[0].length; j++) {
+      if (bgColors[i][j] == targetColor) {
+        count++;
+      }
+    }
+  }
+  return count;
+}
+const SUPABASE_URL = "https://nzqcmepeoplxpkmvhyvw.supabase.co";
+const SUPABASE_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im56cWNtZXBlb3BseHBrbXZoeXZ3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NTc3MzE0OCwiZXhwIjoyMDkxMzQ5MTQ4fQ.iQoCXIpvMEwYFIa4FBQm_RlEG-DYV9juxqYeF3jDsMA";
+const TABLE_NAME = "companies";
+const SHEET_NAME = "List of HIs";
+
+function onEdit(e) {
+  Logger.log("onEdit triggered");
+
+  if (!e) return;
+
+  const sheet = e.source.getActiveSheet();
+  Logger.log("Sheet: " + sheet.getName());
+
+  if (sheet.getName() !== SHEET_NAME) return;
+
+  const startRow = e.range.getRow();
+  const endRow = startRow + e.range.getNumRows() - 1;
+  const startCol = e.range.getColumn();
+  const endCol = startCol + e.range.getNumColumns() - 1;
+  const watchedColumns = [2, 3, 10];
+  const editedWatchedColumn = watchedColumns.some(
+    (column) => column >= startCol && column <= endCol
+  );
+
+  Logger.log(`Rows: ${startRow}-${endRow}, Cols: ${startCol}-${endCol}`);
+
+  if (endRow === 1) return;
+  if (!editedWatchedColumn) return;
+
+  Logger.log("Passed conditions → syncing row");
+
+  for (let row = Math.max(startRow, 2); row <= endRow; row++) {
+    syncEditedRow(row);
+  }
+}
+
+function syncEditedRow(row) {
+  const sheet =
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
+  const values = sheet
+    .getRange(row, 1, 1, sheet.getLastColumn())
+    .getValues()[0];
+
+  const id = values[0];
+
+  const rowData = {
+    company_name: values[1],
+    slots_total: Number(values[2]) || 0,
+    other_requirements: values[9] || "",
+  };
+
+  Logger.log("Row Data:");
+  Logger.log(JSON.stringify({ id, ...rowData }));
+
+  if (!rowData.company_name) return;
+
+  let url;
+  let method;
+
+  if (id) {
+    // Existing row: update by id
+    url = `${SUPABASE_URL}/rest/v1/${TABLE_NAME}?id=eq.${id}`;
+    method = "patch";
+  } else {
+    // New row: insert without id
+    url = `${SUPABASE_URL}/rest/v1/${TABLE_NAME}`;
+    method = "post";
+  }
+
+  const options = {
+    method,
+    contentType: "application/json",
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`,
+      Prefer: "return=representation",
+    },
+    payload: JSON.stringify(rowData),
+    muteHttpExceptions: true,
+  };
+
+  const res = UrlFetchApp.fetch(url, options);
+
+  Logger.log("Response Code: " + res.getResponseCode());
+  Logger.log("Response Body: " + res.getContentText());
+
+  const data = JSON.parse(res.getContentText() || "[]");
+
+  // If new row, write generated id back to column A
+  if (!id && data.length > 0 && data[0].id) {
+    sheet.getRange(row, 1).setValue(data[0].id);
+  }
+}
+
+function testSync() {
+  syncEditedRow(2); // test row 2
+}
+
+function pullFromSupabase() {
+  const sheet =
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
+
+  const url = `${SUPABASE_URL}/rest/v1/${TABLE_NAME}?select=*`;
+
+  const res = UrlFetchApp.fetch(url, {
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`,
+    },
+  });
+
+  const data = JSON.parse(res.getContentText());
+
+  // Get existing sheet data
+  const range = sheet.getDataRange();
+  const values = range.getValues();
+
+  // Build map: id -> row index
+  const idMap = {};
+  for (let i = 1; i < values.length; i++) {
+    const id = values[i][0];
+    if (id) idMap[id] = i + 1; // actual sheet row
+  }
+
+  data.forEach((row) => {
+    if (idMap[row.id]) {
+      // ✅ Update existing row
+      const sheetRow = idMap[row.id];
+
+      sheet.getRange(sheetRow, 2).setValue(row.company_name);
+      sheet.getRange(sheetRow, 3).setValue(row.slots_total);
+      sheet.getRange(sheetRow, 10).setValue(row.other_requirements || "");
+    } else {
+      // ✅ Append new row
+      sheet.appendRow([
+        row.id,
+        row.company_name,
+        row.slots_total,
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        row.other_requirements || "",
+      ]);
+    }
+  });
+}
