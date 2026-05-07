@@ -2,7 +2,7 @@ const SUPABASE_URL = "https://nzqcmepeoplxpkmvhyvw.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_zc3HjgzA6LkNykZkKOoM8Q_6SqJBj0i";
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const APPS_SCRIPT_UPLOAD_URL =
-  "https://script.google.com/macros/s/AKfycbwBIadfjjUq3fmgnT8thpamqbovcr4Ab7kSkQO0jYBjOQVi9w8H7gvXOstjSYlAtu7m/exec";
+  "https://script.google.com/macros/s/AKfycbwe1iJ97nOibhXXZPsHZtI4UEAOEPuI9HbJtnfmRyCWX01c9lad_paBYuhoqSl-cxOG/exec";
 
 let companiesTable = null;
 
@@ -505,9 +505,7 @@ function unlockPortalForEditing() {
   $("#save-preferences-btn").prop("disabled", false).text("Save Preferences");
   $("#submitted-documents").prop("disabled", false).val("");
   $("#submitted-documents-name").text("No file");
-  $("#clear-choices-btn")
-    .prop("disabled", false)
-    .text("Clear Choices");
+  $("#clear-choices-btn").prop("disabled", false).text("Clear Choices");
   $("#new-application-btn")
     .addClass("d-none")
     .prop("disabled", false)
@@ -536,10 +534,13 @@ async function startNewApplication() {
   clearPortalMessage();
 
   try {
-    const { error } = await supabaseClient.rpc("start_new_student_application", {
-      p_student_id: currentStudent.id,
-      p_student_email: loggedInUser.email,
-    });
+    const { error } = await supabaseClient.rpc(
+      "start_new_student_application",
+      {
+        p_student_id: currentStudent.id,
+        p_student_email: loggedInUser.email,
+      }
+    );
 
     if (error) throw error;
 
@@ -559,9 +560,7 @@ async function startNewApplication() {
       "danger",
       error?.message || "Failed to start a new application."
     );
-    $("#new-application-btn")
-      .prop("disabled", false)
-      .text("New Application");
+    $("#new-application-btn").prop("disabled", false).text("New Application");
   }
 }
 
@@ -678,9 +677,7 @@ async function refreshCompanies() {
 function lockPortalAfterSubmission() {
   $("#save-preferences-btn").prop("disabled", true).text("Already Submitted");
   $("#submitted-documents").prop("disabled", true);
-  $("#clear-choices-btn")
-    .prop("disabled", true)
-    .text("Clear Choices");
+  $("#clear-choices-btn").prop("disabled", true).text("Clear Choices");
   $("#new-application-btn")
     .removeClass("d-none")
     .prop("disabled", false)
