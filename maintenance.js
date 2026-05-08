@@ -25,12 +25,12 @@
           <div class="maintenance-status">Temporary Pause</div>
           <h1 id="maintenance-title">FOR 198 HI Portal is currently unavailable</h1>
           <p>
-            Access to the portal has been temporarily paused while updates are
-            being handled. Please check back later for availability.
+            // Access to the portal has been temporarily paused while updates are
+            // being handled. Please check back later for availability.
           </p>
           <p class="maintenance-note">
-            For urgent internship concerns, please contact the FOR 198 coordinator
-            or the CFNR office through the usual official channels.
+            // For urgent internship concerns, please contact the FOR 198 coordinator
+            // or the CFNR office through the usual official channels.
           </p>
         </section>
       </main>
