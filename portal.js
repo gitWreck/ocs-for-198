@@ -903,6 +903,8 @@ async function loadPortal(email) {
 }
 
 $(document).ready(function () {
+  if (window.PORTAL_AVAILABLE === false) return;
+
   const storedUser = getStoredUser();
 
   if (!storedUser || !storedUser.email) {

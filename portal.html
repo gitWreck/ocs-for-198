@@ -3,148 +3,1071 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="robots" content="noindex, nofollow" />
-    <meta http-equiv="Cache-Control" content="no-store" />
-    <title>FOR 198 HI Portal - Temporarily Unavailable</title>
+    <title>Internship HI Portal</title>
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css"
+      rel="stylesheet"
+    />
 
     <link rel="icon" type="image/png" href="CFNR-logo-final.png" />
+    <script src="maintenance-config.js"></script>
+    <script src="maintenance.js"></script>
 
     <style>
       :root {
-        color-scheme: light;
-        --green: #04543c;
-        --green-dark: #033b2a;
-        --maroon: #8b1539;
-        --ink: #1f2937;
-        --muted: #64748b;
-        --line: #dbe4dc;
-        --surface: #ffffff;
-        --page: #f6f8f5;
-      }
-
-      * {
-        box-sizing: border-box;
-      }
-
-      html,
-      body {
-        min-height: 100%;
+        --portal-maroon: #8b1539;
+        --portal-green: #04543c;
+        --portal-light: #f7f8fa;
+        --portal-muted: #6c757d;
+        --portal-border: #e9ecef;
       }
 
       body {
-        margin: 0;
-        display: grid;
-        place-items: center;
-        min-height: 100vh;
-        padding: 24px;
+        background: linear-gradient(135deg, #f8f5f6 0%, #f3f7f5 100%);
+        color: #1f2937;
+      }
+
+      .portal-navbar {
         background: linear-gradient(
-            135deg,
-            rgba(4, 84, 60, 0.08),
-            transparent 42%
-          ),
-          linear-gradient(315deg, rgba(139, 21, 57, 0.08), transparent 40%),
-          var(--page);
-        color: var(--ink);
-        font-family: Inter, ui-sans-serif, system-ui, -apple-system,
-          BlinkMacSystemFont, "Segoe UI", sans-serif;
+          135deg,
+          var(--portal-maroon) 0%,
+          var(--portal-green) 100%
+        );
       }
 
-      main {
-        width: min(100%, 680px);
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        background: var(--surface);
-        box-shadow: 0 24px 70px rgba(15, 23, 42, 0.1);
-        overflow: hidden;
+      .portal-navbar .navbar-brand {
+        color: #fff;
+        font-weight: 700;
+        letter-spacing: 0.2px;
       }
 
-      .banner {
-        min-height: 12px;
-        background: linear-gradient(90deg, var(--maroon), var(--green));
+      .portal-navbar .btn-logout {
+        border-color: rgba(255, 255, 255, 0.45);
+        color: #fff;
       }
 
-      .content {
-        padding: clamp(28px, 6vw, 52px);
-        text-align: center;
+      .portal-navbar .btn-logout:hover {
+        background-color: rgba(255, 255, 255, 0.12);
+        color: #fff;
       }
 
-      .logo {
-        width: 88px;
-        height: 88px;
-        object-fit: contain;
-        margin-bottom: 24px;
+      .hero-card {
+        background: linear-gradient(
+          135deg,
+          rgba(139, 21, 57, 0.95) 0%,
+          rgba(4, 84, 60, 0.95) 100%
+        );
+        color: #fff;
+        border: 0;
       }
 
-      .status {
+      .portal-card {
+        border: 0;
+        border-radius: 1.25rem;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+      }
+
+      .section-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #111827;
+      }
+
+      .section-subtitle {
+        font-size: 0.88rem;
+        color: var(--portal-muted);
+      }
+
+      .info-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--portal-muted);
+      }
+
+      .info-value {
+        font-size: 0.98rem;
+        font-weight: 600;
+        color: #111827;
+      }
+
+      .choice-box {
+        border: 1px solid var(--portal-border);
+        border-radius: 0.9rem;
+        padding: 0.9rem 1rem;
+        background: #fff;
+      }
+
+      .choice-number {
+        width: 32px;
+        height: 32px;
+        border-radius: 999px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-height: 32px;
-        padding: 6px 12px;
-        border: 1px solid rgba(4, 84, 60, 0.2);
-        border-radius: 999px;
-        background: rgba(4, 84, 60, 0.08);
-        color: var(--green-dark);
         font-size: 0.82rem;
         font-weight: 700;
-        line-height: 1.2;
+        color: #fff;
+        background-color: var(--portal-maroon);
       }
 
-      h1 {
-        margin: 18px 0 12px;
-        color: var(--green-dark);
-        font-size: clamp(2rem, 5vw, 3rem);
-        line-height: 1.08;
+      .btn-portal-primary {
+        background-color: var(--portal-maroon);
+        border-color: var(--portal-maroon);
+        color: #fff;
+      }
+
+      .btn-portal-primary:hover,
+      .btn-portal-primary:focus {
+        background-color: #74112f;
+        border-color: #74112f;
+        color: #fff;
+      }
+
+      .btn-portal-secondary {
+        border-color: var(--portal-green);
+        color: var(--portal-green);
+      }
+
+      .btn-portal-secondary:hover,
+      .btn-portal-secondary:focus {
+        background-color: var(--portal-green);
+        border-color: var(--portal-green);
+        color: #fff;
+      }
+
+      .new-application-btn {
+        background: linear-gradient(135deg, #0d6efd 0%, #2563eb 100%);
+        border: 1px solid rgba(37, 99, 235, 0.2);
+        border-radius: 1.25rem;
+        color: #fff;
+        font-weight: 700;
         letter-spacing: 0;
+        box-shadow: 0 10px 30px rgba(37, 99, 235, 0.2);
       }
 
-      p {
-        margin: 0 auto;
-        max-width: 560px;
-        color: var(--muted);
-        font-size: clamp(1rem, 2.4vw, 1.125rem);
-        line-height: 1.65;
+      .new-application-btn:hover,
+      .new-application-btn:focus {
+        background: linear-gradient(135deg, #0b5ed7 0%, #1d4ed8 100%);
+        color: #fff;
+        box-shadow: 0 12px 24px rgba(37, 99, 235, 0.28);
+        transform: translateY(-2px);
       }
 
-      .note {
-        margin-top: 28px;
-        padding-top: 22px;
-        border-top: 1px solid var(--line);
-        color: #475569;
-        font-size: 0.95rem;
+      .table thead th {
+        background-color: #f8f9fb;
+        color: #374151;
+        font-size: 0.82rem;
+        font-weight: 700;
+        border-bottom: 1px solid var(--portal-border);
       }
 
-      @media (max-width: 520px) {
-        body {
-          padding: 16px;
+      #companies-table tbody tr {
+        cursor: pointer;
+      }
+
+      #companies-table tbody tr:hover {
+        background-color: rgba(4, 84, 60, 0.05);
+      }
+
+      #companies-table td:nth-child(4),
+      #companies-table th:nth-child(4) {
+        min-width: 320px;
+        white-space: normal;
+      }
+
+      #companies-table td:nth-child(5),
+      #companies-table th:nth-child(5) {
+        min-width: 150px;
+        text-align: center;
+      }
+
+      .slot-badge-open {
+        background-color: rgba(4, 84, 60, 0.12);
+        color: var(--portal-green);
+        font-weight: 700;
+        padding: 0.45rem 0.7rem;
+        border-radius: 999px;
+        font-size: small;
+      }
+
+      .slot-badge-full {
+        background-color: rgba(139, 21, 57, 0.12);
+        color: var(--portal-maroon);
+        font-weight: 700;
+        font-size: small;
+        padding: 0.45rem 0.7rem;
+        border-radius: 999px;
+      }
+
+      .dataTables_wrapper .dataTables_filter input {
+        border-radius: 0.7rem;
+        border: 1px solid var(--portal-border);
+        padding: 0.4rem 0.7rem;
+      }
+
+      .dataTables_wrapper .dataTables_length select {
+        border-radius: 0.7rem;
+        border: 1px solid var(--portal-border);
+      }
+
+      .page-item.active .page-link {
+        background-color: var(--portal-green);
+        border-color: var(--portal-green);
+      }
+
+      .page-link {
+        color: var(--portal-green);
+      }
+
+      .modal-header {
+        border-bottom: 1px solid var(--portal-border);
+      }
+
+      .modal-footer {
+        border-top: 1px solid var(--portal-border);
+      }
+
+      .companies-desktop-wrap {
+        display: block;
+      }
+
+      .companies-mobile-wrap {
+        display: none;
+      }
+
+      .hi-status-card {
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 1px solid #e5e7eb;
+        background-color: #04543c;
+      }
+
+      .hi-status-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+        border-color: rgba(13, 110, 253, 0.25);
+      }
+
+      .hi-status-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(13, 110, 253, 0.08);
+        color: #0d6efd;
+        font-size: 18px;
+      }
+
+      .previous-applications-card {
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 1px solid #dbeafe;
+        background-color: #1d4ed8;
+      }
+
+      .previous-applications-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 24px rgba(37, 99, 235, 0.18);
+        border-color: rgba(37, 99, 235, 0.35);
+      }
+
+      .previous-applications-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.14);
+        color: #fff;
+        font-size: 18px;
+      }
+
+      .previous-applications-btn {
+        background-color: #1d4ed8;
+        border-color: #1d4ed8;
+        border-radius: 1.25rem;
+        color: #fff;
+        font-weight: 700;
+        box-shadow: 0 10px 24px rgba(37, 99, 235, 0.18);
+      }
+
+      .previous-applications-btn:hover,
+      .previous-applications-btn:focus {
+        background-color: #1e40af;
+        border-color: #1e40af;
+        color: #fff;
+        transform: translateY(-2px);
+        box-shadow: 0 12px 24px rgba(37, 99, 235, 0.24);
+      }
+
+      .previous-application-item {
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        padding: 14px 16px;
+        background: #ffffff;
+      }
+
+      .previous-application-choice {
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 10px 12px;
+        background: #f8fafc;
+      }
+      .hi-status-modal {
+        background: #ffffff;
+      }
+
+      .hi-student-summary {
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        padding: 14px 16px;
+        background: #f8fafc;
+      }
+
+      .hi-status-item {
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        padding: 14px 16px;
+        background: #ffffff;
+      }
+
+      .hi-name {
+        font-weight: 600;
+        color: #111827;
+        word-break: break-word;
+      }
+
+      .hi-remarks {
+        color: #4b5563;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+
+      .hi-status-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        padding: 6px 12px;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 1;
+        white-space: nowrap;
+        border: 1px solid transparent;
+      }
+
+      .hi-status-approved {
+        background: #dcfce7;
+        color: #166534;
+        border-color: #bbf7d0;
+      }
+
+      .hi-status-waitlisted {
+        background: #fef3c7;
+        color: #92400e;
+        border-color: #fde68a;
+      }
+
+      .hi-status-rejected {
+        background: #fee2e2;
+        color: #991b1b;
+        border-color: #fecaca;
+      }
+
+      .hi-status-pending {
+        background: #e5e7eb;
+        color: #374151;
+        border-color: #d1d5db;
+      }
+
+      @media (max-width: 1080px) {
+        .companies-desktop-wrap {
+          display: none;
         }
 
-        .logo {
-          width: 72px;
-          height: 72px;
+        .companies-mobile-wrap {
+          display: block;
+        }
+
+        .company-card {
+          transition: all 0.2s ease;
+        }
+
+        .company-card:hover {
+          transform: translateY(-1px);
+        }
+
+        .company-card .card-body {
+          background: #fff;
+          border-radius: 1rem;
         }
       }
     </style>
   </head>
-
   <body>
-    <main aria-labelledby="maintenance-title">
-      <div class="banner" aria-hidden="true"></div>
-      <section class="content">
-        <img class="logo" src="CFNR-logo-final.png" alt="CFNR logo" />
-        <div class="status">Temporary Pause</div>
-        <h1 id="maintenance-title">
-          FOR 198 HI Portal is currently unavailable
-        </h1>
-        <p>
-          <!-- Access to the portal has been temporarily paused while updates are
-          being handled. Please check back later for availability. -->
-        </p>
-        <p class="note">
-          <!-- For urgent internship concerns, please contact the FOR 198 coordinator
-          or the CFNR office through the usual official channels. -->
-        </p>
-      </section>
-    </main>
+    <nav class="navbar navbar-expand-lg portal-navbar shadow-sm">
+      <div class="container-fluid px-4 px-xxl-5">
+        <span class="navbar-brand">FOR 198 Internship HI Portal</span>
+        <button id="logout-btn" class="btn btn-sm btn-logout">Logout</button>
+      </div>
+    </nav>
+
+    <div class="container-fluid px-4 px-xxl-5 py-4 py-lg-5">
+      <div class="card hero-card rounded-4 shadow-sm mb-4">
+        <div class="card-body p-4 p-lg-5">
+          <div class="row align-items-center g-3">
+            <div class="col-lg-8">
+              <h1 class="h3 fw-bold mb-2">Internship HI Selection</h1>
+              <p class="mb-2 opacity-75">
+                Review the available HIs, select up to three preferences, upload
+                your Application Letter, CV, TCG, and save your submission.
+              </p>
+
+              <!-- ✅ Added Instructions -->
+              <div class="small opacity-75 mt-3" style="font-size: 16px">
+                <div class="fw-semibold mb-1">Instructions:</div>
+                <ul class="mb-0 ps-3">
+                  <li>
+                    Select up to <strong>3 HIs</strong> (at least 1 required)
+                  </li>
+                  <li>Click an HI to confirm before selecting</li>
+                  <li>
+                    Upload your
+                    <strong>Application Letter, CV and TCG (PDF) merged</strong>
+                  </li>
+                  <li>Click <strong>Save Preferences</strong> to submit</li>
+                  <li>
+                    Use <strong>New Application</strong> if you need to submit
+                    another set of choices
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="col-lg-4 text-lg-end">
+              <span class="badge rounded-pill bg-light text-dark px-3 py-2">
+                Simple • Realtime Slots • Application History
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="loading-section" class="text-center py-5">
+        <div
+          class="spinner-border mb-3"
+          style="color: #04543c"
+          role="status"
+        ></div>
+        <div class="text-muted">Loading portal...</div>
+      </div>
+
+      <div id="not-found-section" class="d-none">
+        <div class="alert alert-warning rounded-4 border-0 shadow-sm">
+          No student record found for this email.
+        </div>
+      </div>
+
+      <div id="portal-error-section" class="d-none">
+        <div
+          class="alert alert-danger rounded-4 border-0 shadow-sm"
+          id="portal-error-message"
+        >
+          Failed to load portal.
+        </div>
+      </div>
+
+      <div id="portal-section" class="d-none">
+        <div class="row g-4">
+          <div class="col-xl-3">
+            <div class="card portal-card mb-4">
+              <div class="card-body p-4">
+                <div class="section-title mb-1">Student Information</div>
+                <div class="section-subtitle mb-4">
+                  Your account details linked to this portal
+                </div>
+
+                <div class="mb-3">
+                  <div class="info-label">Full Name</div>
+                  <div id="student-name" class="info-value">-</div>
+                </div>
+
+                <div class="mb-3">
+                  <div class="info-label">Student Number</div>
+                  <div id="student-no" class="info-value">-</div>
+                </div>
+
+                <div class="mb-3">
+                  <div class="info-label">Email</div>
+                  <div id="student-email" class="info-value">-</div>
+                </div>
+
+                <!-- NEW: Term and Year (non-editable) -->
+                <div class="mb-0">
+                  <div class="info-label">Term and Year</div>
+                  <div id="term-year" class="info-value">2026 Midyear</div>
+                </div>
+              </div>
+            </div>
+
+            <button
+              id="new-application-btn"
+              class="btn new-application-btn w-100 mb-4 py-3 d-none"
+            >
+              New Application
+            </button>
+
+            <!-- <button
+              id="view-previous-applications-btn"
+              type="button"
+              data-bs-toggle="modal"
+              data-bs-target="#previousApplicationsModal"
+              class="btn previous-applications-btn w-100 mb-4 py-3"
+            >
+              View Previous Applications
+            </button> -->
+
+            <div
+              id="view-hi-status-btn"
+              data-bs-toggle="modal"
+              data-bs-target="#hiStatusModal"
+              class="card portal-card mb-4 cursor-pointer hi-status-card"
+            >
+              <div
+                class="card-body p-3 d-flex align-items-center justify-content-between"
+              >
+                <div>
+                  <div class="fw-semibold text-light">
+                    Click here to View HI Status
+                  </div>
+                  <div class="small text-light">
+                    Check application results and remarks
+                  </div>
+                </div>
+
+                <div class="hi-status-icon">
+                  <i class="bi bi-clipboard-check"></i>
+                </div>
+              </div>
+            </div>
+
+            <div class="card portal-card">
+              <div class="card-body p-4">
+                <div
+                  class="d-flex justify-content-between align-items-center mb-3"
+                >
+                  <div>
+                    <div class="section-title mb-1">Selected HIs</div>
+                    <div class="section-subtitle">Up to 3 choices only</div>
+                  </div>
+                </div>
+
+                <div class="choice-box mb-3">
+                  <div class="d-flex align-items-center gap-3">
+                    <span class="choice-number">1</span>
+                    <div>
+                      <div class="info-label mb-1">Choice 1</div>
+                      <div id="choice-1" class="info-value">-</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="choice-box mb-3">
+                  <div class="d-flex align-items-center gap-3">
+                    <span
+                      class="choice-number"
+                      style="background-color: #04543c"
+                      >2</span
+                    >
+                    <div>
+                      <div class="info-label mb-1">Choice 2</div>
+                      <div id="choice-2" class="info-value">-</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="choice-box mb-3">
+                  <div class="d-flex align-items-center gap-3">
+                    <span
+                      class="choice-number"
+                      style="background-color: #6b7280"
+                      >3</span
+                    >
+                    <div>
+                      <div class="info-label mb-1">Choice 3</div>
+                      <div id="choice-3" class="info-value">-</div>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  id="clear-choices-btn"
+                  class="btn btn-portal-secondary w-100"
+                >
+                  Clear Choices
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-xl-9">
+            <div class="card portal-card mb-4">
+              <div class="card-body p-4">
+                <div
+                  class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3"
+                >
+                  <div>
+                    <div class="section-title mb-1">Available HIs</div>
+                    <div class="section-subtitle">
+                      Search, browse, and click a row to view details
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Mobile Search (only visible on small screens) -->
+                <div class="mb-3 d-block d-xl-none">
+                  <input
+                    type="text"
+                    id="companies-search"
+                    class="form-control"
+                    placeholder="Search host institution..."
+                  />
+                </div>
+
+                <!-- Desktop / larger screens -->
+                <div class="companies-desktop-wrap">
+                  <div class="table-responsive p-2">
+                    <table
+                      id="companies-table"
+                      class="table align-middle mb-0"
+                      style="width: 100%"
+                    >
+                      <thead>
+                        <tr>
+                          <th>HI name</th>
+                          <th>Total Slots</th>
+                          <th>No. of Applicants</th>
+                          <th>Other Requirements</th>
+                          <th>Action</th>
+                        </tr>
+                      </thead>
+                      <tbody id="companies-table-body"></tbody>
+                    </table>
+
+                    <!-- Desktop Search (DataTables default) -->
+                    <!-- <div
+                      class="d-none d-xl-block mt-2"
+                      id="companies-table-search-wrap"
+                    ></div> -->
+                  </div>
+                </div>
+
+                <!-- Mobile cards -->
+                <div class="companies-mobile-wrap">
+                  <div id="companies-mobile-list"></div>
+                  <div id="companies-mobile-pagination" class="mt-3"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card portal-card">
+              <div class="card-body p-4">
+                <div class="section-title mb-1">
+                  Documents (Application Letter, CV, TCG) Merged file
+                </div>
+                <div class="section-subtitle mb-4">
+                  Upload your processed PDF document before submitting your
+                  preferences
+                </div>
+
+                <div class="mb-3">
+                  <label
+                    for="submitted-documents"
+                    class="form-label fw-semibold"
+                  >
+                    Submitted Documents <br />
+                    (Filename format:
+                    <em
+                      >Lastname_Firstname_FOR198_documents.pdf / Keep it under
+                      10MB</em
+                    >)
+                  </label>
+                  <input
+                    type="file"
+                    class="form-control"
+                    id="submitted-documents"
+                    accept=".pdf,application/pdf"
+                  />
+                  <div class="form-text">PDF format only</div>
+                </div>
+
+                <div class="mb-3">
+                  <div class="info-label">Selected File</div>
+                  <div class="small">
+                    <span id="submitted-documents-name">No file</span>
+                  </div>
+                </div>
+
+                <div id="save-message" class="alert d-none mb-3"></div>
+
+                <div id="save-message" class="alert d-none mb-3"></div>
+
+                <div class="d-flex flex-wrap gap-2">
+                  <button
+                    id="save-preferences-btn"
+                    class="btn btn-portal-primary px-4"
+                  >
+                    Save Preferences
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="modal fade"
+      id="companyModal"
+      tabindex="-1"
+      aria-labelledby="companyModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+          <div class="modal-header">
+            <h5 class="modal-title fw-bold" id="companyModalLabel">
+              HI Details
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+
+          <div class="modal-body p-4">
+            <input type="hidden" id="modal-company-id" />
+
+            <div class="mb-3">
+              <div class="info-label">Company Name</div>
+              <div id="modal-company-name" class="info-value">-</div>
+            </div>
+
+            <div class="mb-3">
+              <div class="info-label">Other Requirements</div>
+              <div id="modal-company-requirements" class="info-value">-</div>
+            </div>
+            <!-- 
+            <div class="mb-3">
+              <div class="info-label">Description</div>
+              <div id="modal-company-description" class="info-value">-</div>
+            </div>
+
+            <div class="mb-3">
+              <div class="info-label">Address</div>
+              <div id="modal-company-address" class="info-value">-</div>
+            </div> -->
+
+            <div class="mb-0">
+              <div class="info-label">Remaining Slots</div>
+              <div id="modal-company-slots" class="info-value">-</div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-outline-secondary"
+              data-bs-dismiss="modal"
+            >
+              Close
+            </button>
+            <button
+              type="button"
+              class="btn btn-portal-primary"
+              id="select-company-btn"
+            >
+              Select Company
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="modal fade"
+      id="saveConfirmModal"
+      tabindex="-1"
+      aria-labelledby="saveConfirmModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+          <div class="modal-header border-0 pb-0">
+            <h5 class="modal-title fw-semibold" id="saveConfirmModalLabel">
+              Confirm Submission
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+              id="save-confirm-close-btn"
+            ></button>
+          </div>
+
+          <div class="modal-body pt-2">
+            <div id="save-confirm-content">
+              <p class="mb-2">
+                Are you sure you want to submit your host institution
+                preferences?
+              </p>
+              <p class="text-muted small mb-0">
+                After submitting, you can start a new application if needed.
+                Your previous submission will stay saved as history.
+              </p>
+            </div>
+
+            <div id="save-loading-content" class="d-none text-center py-3">
+              <div class="spinner-border text-primary mb-3" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <div class="fw-semibold">Submitting your preferences...</div>
+              <div class="text-muted small">
+                Please wait while we save your selected HIs and upload your
+                file.
+              </div>
+            </div>
+
+            <div id="save-success-content" class="d-none text-center py-3">
+              <div class="mb-3 text-success">
+                <i class="bi bi-check-circle-fill fs-1"></i>
+              </div>
+              <div class="fw-semibold">Submission Successful!</div>
+              <div class="text-muted small">
+                Logging you out in
+                <span id="logout-countdown">5</span> seconds...
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer border-0 pt-0" id="save-confirm-actions">
+            <button
+              type="button"
+              class="btn btn-light px-4"
+              data-bs-dismiss="modal"
+              id="save-cancel-btn"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="btn btn-portal-primary px-4"
+              id="confirm-save-btn"
+            >
+              Confirm Save
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="modal fade"
+      id="hiStatusModal"
+      tabindex="-1"
+      aria-labelledby="hiStatusModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content hi-status-modal border-0 shadow-lg rounded-4">
+          <div class="modal-header border-0 pb-0">
+            <div>
+              <h5 class="modal-title fw-bold mb-1" id="hiStatusModalLabel">
+                HI Application Status
+              </h5>
+              <div class="text-muted small">
+                View your selected HIs, application results, and remarks
+              </div>
+            </div>
+
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+
+          <div class="modal-body pt-3">
+            <div id="hi-status-loading" class="d-none text-center py-4">
+              <div
+                class="spinner-border spinner-border-sm text-primary mb-2"
+              ></div>
+              <div class="small text-muted">Loading HI status...</div>
+            </div>
+
+            <div id="hi-status-error" class="alert alert-danger d-none"></div>
+
+            <div id="hi-status-empty" class="d-none text-center py-4">
+              <div class="text-muted">
+                No HI status record found for your account.
+              </div>
+            </div>
+
+            <div id="hi-status-content" class="d-none">
+              <div class="hi-student-summary mb-3">
+                <div class="small text-muted mb-1">Student</div>
+                <div class="fw-semibold" id="hi-status-fullname">-</div>
+                <div class="small text-muted" id="hi-status-email">-</div>
+                <div class="small text-muted" id="hi-status-student-no">-</div>
+              </div>
+
+              <div class="hi-status-list">
+                <div class="hi-status-item mb-3">
+                  <div
+                    class="d-flex justify-content-between align-items-start gap-3 mb-2"
+                  >
+                    <div class="flex-grow-1 min-w-0">
+                      <div class="small text-muted mb-1">HI 1</div>
+                      <div id="hi1-name" class="hi-name">-</div>
+                    </div>
+                    <div id="hi1-status-wrap">-</div>
+                  </div>
+
+                  <div>
+                    <div class="small text-muted mb-1">Remarks</div>
+                    <div id="hi1-remarks" class="hi-remarks">-</div>
+                  </div>
+                </div>
+
+                <div class="hi-status-item mb-3">
+                  <div
+                    class="d-flex justify-content-between align-items-start gap-3 mb-2"
+                  >
+                    <div class="flex-grow-1 min-w-0">
+                      <div class="small text-muted mb-1">HI 2</div>
+                      <div id="hi2-name" class="hi-name">-</div>
+                    </div>
+                    <div id="hi2-status-wrap">-</div>
+                  </div>
+
+                  <div>
+                    <div class="small text-muted mb-1">Remarks</div>
+                    <div id="hi2-remarks" class="hi-remarks">-</div>
+                  </div>
+                </div>
+
+                <div class="hi-status-item">
+                  <div
+                    class="d-flex justify-content-between align-items-start gap-3 mb-2"
+                  >
+                    <div class="flex-grow-1 min-w-0">
+                      <div class="small text-muted mb-1">HI 3</div>
+                      <div id="hi3-name" class="hi-name">-</div>
+                    </div>
+                    <div id="hi3-status-wrap">-</div>
+                  </div>
+
+                  <div>
+                    <div class="small text-muted mb-1">Remarks</div>
+                    <div id="hi3-remarks" class="hi-remarks">-</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="modal fade"
+      id="previousApplicationsModal"
+      tabindex="-1"
+      aria-labelledby="previousApplicationsModalLabel"
+      aria-hidden="true"
+    >
+      <div
+        class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable"
+      >
+        <div class="modal-content border-0 shadow-lg rounded-4">
+          <div class="modal-header border-0 pb-0">
+            <div>
+              <h5
+                class="modal-title fw-bold mb-1"
+                id="previousApplicationsModalLabel"
+              >
+                Previous Applications
+              </h5>
+              <div class="text-muted small">
+                View applications that were replaced by a new submission
+              </div>
+            </div>
+
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+
+          <div class="modal-body pt-3">
+            <div
+              id="previous-applications-loading"
+              class="d-none text-center py-4"
+            >
+              <div
+                class="spinner-border spinner-border-sm text-primary mb-2"
+              ></div>
+              <div class="small text-muted">
+                Loading previous applications...
+              </div>
+            </div>
+
+            <div
+              id="previous-applications-error"
+              class="alert alert-danger d-none"
+            ></div>
+
+            <div
+              id="previous-applications-empty"
+              class="d-none text-center py-4"
+            >
+              <div class="text-muted">
+                No previous application found for your account.
+              </div>
+            </div>
+
+            <div id="previous-applications-list" class="d-none"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
+
+    <script src="portal.js"></script>
+    <script src="hi-status-modal.js"></script>
+    <script src="previous-applications-modal.js"></script>
   </body>
 </html>
