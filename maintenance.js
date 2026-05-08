@@ -1,10 +1,22 @@
 (function () {
-  if (window.PORTAL_AVAILABLE !== false) return;
+  const unavailableAt = Date.parse(window.PORTAL_UNAVAILABLE_AT_PH || "");
+  const hasScheduledPause = Number.isFinite(unavailableAt);
+  const shouldPauseNow =
+    window.PORTAL_AVAILABLE === false ||
+    (hasScheduledPause && Date.now() >= unavailableAt);
 
-  document.title = "FOR 198 HI Portal - Temporarily Unavailable";
-  sessionStorage.removeItem("student_portal_user");
+  function showMaintenancePage() {
+    window.PORTAL_AVAILABLE = false;
+    document.title = "FOR 198 HI Portal - Temporarily Unavailable";
+    sessionStorage.removeItem("student_portal_user");
 
-  document.addEventListener("DOMContentLoaded", function () {
+    if (!document.body) {
+      document.addEventListener("DOMContentLoaded", showMaintenancePage, {
+        once: true,
+      });
+      return;
+    }
+
     document.body.innerHTML = `
       <main class="maintenance-page" aria-labelledby="maintenance-title">
         <div class="maintenance-banner" aria-hidden="true"></div>
@@ -122,5 +134,26 @@
       }
     `;
     document.head.appendChild(style);
-  });
+  }
+
+  function scheduleMaintenancePage(delay) {
+    const maxDelay = 2147483647;
+    window.setTimeout(function () {
+      if (Date.now() >= unavailableAt) {
+        showMaintenancePage();
+        return;
+      }
+
+      scheduleMaintenancePage(unavailableAt - Date.now());
+    }, Math.min(delay, maxDelay));
+  }
+
+  if (shouldPauseNow) {
+    showMaintenancePage();
+    return;
+  }
+
+  if (hasScheduledPause) {
+    scheduleMaintenancePage(unavailableAt - Date.now());
+  }
 })();
