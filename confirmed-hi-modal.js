@@ -65,12 +65,12 @@ function showConfirmedHiContent(records) {
             <div class="fw-semibold">${escapeConfirmedHiHtml(
               safeConfirmedHiDisplay(record.confirmedHi)
             )}</div>
-            <div class="small text-muted mt-3 mb-1">Remarks</div>
-            <div class="hi-remarks">${escapeConfirmedHiHtml(
-              safeConfirmedHiDisplay(record.remarks)
-            )}</div>
-          </div>
-        `
+            </div>
+            `
+        // <div class="small text-muted mt-3 mb-1">Remarks</div>
+        // <div class="hi-remarks">${escapeConfirmedHiHtml(
+        //   safeConfirmedHiDisplay(record.remarks)
+        // )}</div>
       )
       .join("")
   );
