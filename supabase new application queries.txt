@@ -4,9 +4,13 @@
 -- 2. Allow a student to start a new active application.
 -- 3. Count only active applications in HI applicant totals.
 -- 4. Keep the existing "Other requirements" company field.
+-- 5. Add "Remaining slots" for student-facing availability.
 
 alter table public.companies
 add column if not exists other_requirements text not null default '';
+
+alter table public.companies
+add column if not exists slots_remaining integer not null default 0;
 
 alter table public.student_submissions
 add column if not exists is_active boolean not null default true,
@@ -36,6 +40,7 @@ select
   c.id,
   c.company_name,
   c.slots_total,
+  c.slots_remaining,
   c.other_requirements,
   c.is_active,
   count(ss.id) as total_applicants
@@ -45,7 +50,7 @@ left join public.student_choices sc
 left join public.student_submissions ss
   on ss.id = sc.submission_id
  and ss.is_active = true
-group by c.id, c.company_name, c.slots_total, c.other_requirements, c.is_active;
+group by c.id, c.company_name, c.slots_total, c.slots_remaining, c.other_requirements, c.is_active;
 
 create or replace function public.start_new_student_application(
     p_student_id bigint,

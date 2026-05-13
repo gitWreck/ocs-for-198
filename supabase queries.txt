@@ -3,18 +3,22 @@ drop view if exists public.v_companies_with_slots;
 alter table public.companies
 add column if not exists other_requirements text not null default '';
 
+alter table public.companies
+add column if not exists slots_remaining integer not null default 0;
+
 create view public.v_companies_with_slots as
 select 
   c.id,
   c.company_name,
   c.slots_total,
+  c.slots_remaining,
   c.other_requirements,
   c.is_active,
   count(sc.id) as total_applicants
 from public.companies c
 left join public.student_choices sc
   on sc.company_id = c.id
-group by c.id, c.company_name, c.slots_total, c.other_requirements, c.is_active;
+group by c.id, c.company_name, c.slots_total, c.slots_remaining, c.other_requirements, c.is_active;
 
 notify pgrst, 'reload schema';
 
@@ -245,6 +249,7 @@ create table public.companies (
 
     company_name text not null,
     slots_total integer not null default 0,
+    slots_remaining integer not null default 0,
     other_requirements text not null default '',
     slots_taken integer not null default 0,
 

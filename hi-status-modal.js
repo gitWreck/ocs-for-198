@@ -1,9 +1,5 @@
-const HI_STATUS_SHEET_ID = "1x1b4NjqOAg_rXEwwr5c8EuIhdm8xCUMkuxKlBMyd7Go";
-const HI_STATUS_SHEET_NAME = "STATUS OF APPLICATION";
-
-const HI_STATUS_SHEET_URL = `https://docs.google.com/spreadsheets/d/${HI_STATUS_SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(
-  HI_STATUS_SHEET_NAME
-)}&tqx=out:json`;
+const HI_STATUS_APPS_SCRIPT_URL =
+  "https://script.google.com/a/macros/up.edu.ph/s/AKfycbwuRq6qd89LIQ2_mthURuwZtprGmNnZ1CmdPMqYMUhUhg2nzUIvX6oleWgAjMvy_SUg/exec";
 
 function getStoredPortalUser() {
   try {
@@ -12,12 +8,6 @@ function getStoredPortalUser() {
   } catch (error) {
     return null;
   }
-}
-
-function normalizeEmail(value) {
-  return String(value || "")
-    .trim()
-    .toLowerCase();
 }
 
 function safeDisplay(value) {
@@ -182,81 +172,56 @@ function showHiStatusContent(records) {
   $("#hi-status-content").removeClass("d-none");
 }
 
-function parseGoogleSheetResponse(rawText) {
-  const cleaned = rawText
-    .replace("/*O_o*/", "")
-    .replace("google.visualization.Query.setResponse(", "")
-    .replace(/\);$/, "");
-
-  return JSON.parse(cleaned);
-}
-
-function normalizeHeaderName(header) {
-  return String(header || "")
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, " ");
-}
-function convertSheetRowsToObjects(parsed) {
-  const rows = parsed?.table?.rows || [];
-
-  return rows.map((row) => {
-    const cells = row.c || [];
-
-    return {
-      fullname: cells[1]?.v ?? "",
-      email: cells[3]?.v ?? "",
-      "student number": cells[4]?.v ?? "",
-
-      "hi 1": cells[5]?.v ?? "",
-      "status 1": cells[6]?.v ?? "",
-      "remarks 1": cells[7]?.v ?? "",
-
-      "hi 2": cells[8]?.v ?? "",
-      "status 2": cells[9]?.v ?? "",
-      "remarks 2": cells[10]?.v ?? "",
-
-      "hi 3": cells[11]?.v ?? "",
-      "status 3": cells[12]?.v ?? "",
-      "remarks 3": cells[13]?.v ?? "",
-    };
-  });
-}
-
-function findStudentHiRecord(rows, email) {
-  const normalizedTarget = normalizeEmail(email);
-  return (
-    rows.find((row) => normalizeEmail(row.email) === normalizedTarget) || null
-  );
-}
-
-async function fetchHiStatusByEmail(email) {
-  const normalizedEmail = normalizeEmail(email);
-
-  const query = encodeURIComponent(
-    `select * where lower(D) contains '${normalizedEmail}'`
-  );
-
-  const url = `https://docs.google.com/spreadsheets/d/${HI_STATUS_SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(
-    HI_STATUS_SHEET_NAME
-  )}&tq=${query}&tqx=out:json`;
-
-  const response = await fetch(url);
-  console.log("response:", response);
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch filtered Google Sheet data.");
+function fetchHiStatusRecords() {
+  if (
+    !HI_STATUS_APPS_SCRIPT_URL ||
+    HI_STATUS_APPS_SCRIPT_URL.includes("PASTE_")
+  ) {
+    return Promise.reject(
+      new Error("HI status Apps Script URL is not configured.")
+    );
   }
 
-  const rawText = await response.text();
-  const parsed = parseGoogleSheetResponse(rawText);
-  const rows = convertSheetRowsToObjects(parsed).filter(
-    (row) => normalizeEmail(row.email) === normalizedEmail
-  );
+  const url = new URL(HI_STATUS_APPS_SCRIPT_URL);
+  url.searchParams.set("action", "hi-status");
+  const callbackName = `hiStatusJsonp_${Date.now()}_${Math.random()
+    .toString(36)
+    .slice(2)}`;
+  url.searchParams.set("callback", callbackName);
 
-  console.log("rows:", rows);
+  return new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    const timeoutId = window.setTimeout(() => {
+      cleanup();
+      reject(new Error("HI status lookup timed out."));
+    }, 15000);
 
-  return rows;
+    function cleanup() {
+      window.clearTimeout(timeoutId);
+      delete window[callbackName];
+      script.remove();
+    }
+
+    window[callbackName] = function (result) {
+      cleanup();
+
+      if (!result || !result.success) {
+        reject(new Error(result?.message || "HI status lookup failed."));
+        return;
+      }
+
+      resolve(Array.isArray(result.records) ? result.records : []);
+    };
+
+    script.src = url.toString();
+    script.async = true;
+    script.onerror = function () {
+      cleanup();
+      reject(new Error("Failed to load HI status data."));
+    };
+
+    document.body.appendChild(script);
+  });
 }
 async function loadHiStatusModalData() {
   resetHiStatusModal();
@@ -271,7 +236,7 @@ async function loadHiStatusModalData() {
 
     console.log("storedUser:", storedUser);
 
-    const records = await fetchHiStatusByEmail(storedUser.email);
+    const records = await fetchHiStatusRecords();
 
     if (!records.length) {
       showHiStatusEmpty();

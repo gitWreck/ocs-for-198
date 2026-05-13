@@ -68,9 +68,17 @@ function logoutUser() {
   window.location.href = "index.html";
 }
 
-// function getRemainingSlots(company) {
-//   return Math.max(Number(company.slots_remaining || 0), 0);
-// }
+function getRemainingSlots(company) {
+  const remaining = Number(company.slots_remaining);
+
+  if (!Number.isNaN(remaining)) {
+    return Math.max(remaining, 0);
+  }
+
+  const total = Number(company.slots_total);
+
+  return Number.isNaN(total) ? 0 : Math.max(total, 0);
+}
 
 async function getStudentByEmail(email) {
   const { data, error } = await supabaseClient
@@ -91,7 +99,7 @@ async function getCompanies() {
   const { data, error } = await supabaseClient
     .from("v_companies_with_slots")
     .select(
-      "id, company_name, slots_total, other_requirements, total_applicants, is_active"
+      "id, company_name, slots_total, slots_remaining, other_requirements, is_active"
     )
     .eq("is_active", true)
     .order("company_name", { ascending: true });
@@ -178,9 +186,8 @@ function renderCompaniesMobile(companies) {
   }
 
   pagedCompanies.forEach((company) => {
-    const slots = Number(company.slots_total);
-    const isDisabled = isNaN(slots) || slots <= 0;
-    const applicants = Number(company.total_applicants || 0);
+    const remainingSlots = getRemainingSlots(company);
+    const isDisabled = remainingSlots <= 0;
     const otherRequirements = company.other_requirements || "-";
 
     $mobileList.append(`
@@ -206,8 +213,8 @@ function renderCompaniesMobile(companies) {
             </div>
             <div class="col-6">
               <div class="border rounded-3 p-2 bg-light h-100">
-                <div class="small text-muted">Applicants</div>
-                <div class="fw-semibold">${escapeHtml(applicants)}</div>
+                <div class="small text-muted">Remaining Slots</div>
+                <div class="fw-semibold">${escapeHtml(remainingSlots)}</div>
               </div>
             </div>
           </div>
@@ -319,18 +326,14 @@ function renderCompanies(companies) {
     latestCompanies.forEach((company) => {
       // console.log("Rendering company:", company);
 
-      const slots = Number(company.slots_total);
-      const isDisabled = isNaN(slots) || slots <= 0;
-
-      const applicants = isNaN(Number(company.total_applicants))
-        ? 0
-        : Number(company.total_applicants);
+      const remainingSlots = getRemainingSlots(company);
+      const isDisabled = remainingSlots <= 0;
       const otherRequirements = company.other_requirements || "-";
 
       rows.push([
         `<span class="fw-semibold">${escapeHtml(company.company_name)}</span>`,
         escapeHtml(company.slots_total),
-        escapeHtml(applicants),
+        escapeHtml(remainingSlots),
         `<span class="requirements-cell">${escapeHtml(
           otherRequirements
         )}</span>`,
@@ -371,8 +374,7 @@ function renderCompanies(companies) {
           return;
         }
 
-        const slots = Number(company.slots_total);
-        const isDisabled = isNaN(slots) || slots <= 0;
+        const isDisabled = getRemainingSlots(company) <= 0;
 
         if (isDisabled) {
           $(row)
@@ -412,7 +414,15 @@ function renderCompanies(companies) {
 
       if (!company) return;
 
-      $(row).addClass("company-row").attr("data-id", company.id);
+      if (getRemainingSlots(company) <= 0) {
+        $(row).addClass("opacity-50");
+        return;
+      }
+
+      $(row)
+        .removeClass("opacity-50")
+        .addClass("company-row")
+        .attr("data-id", company.id);
     });
   }
 
@@ -446,11 +456,7 @@ function openCompanyModal(companyId) {
   $("#modal-company-name").text(company.company_name || "-");
   $("#modal-company-requirements").text(company.other_requirements || "-");
   // $("#modal-company-address").text("-");
-  $("#modal-company-slots").text(
-    `${company.slots_total || 0} slot(s) • ${
-      company.total_applicants || 0
-    } applicant(s)`
-  );
+  $("#modal-company-slots").text(`${getRemainingSlots(company)} slot(s)`);
 
   if (!companyModalInstance) {
     const modalElement = document.getElementById("companyModal");
