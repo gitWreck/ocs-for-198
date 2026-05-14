@@ -1,5 +1,4 @@
-const HI_STATUS_APPS_SCRIPT_URL =
-  "https://script.google.com/a/macros/up.edu.ph/s/AKfycbwuRq6qd89LIQ2_mthURuwZtprGmNnZ1CmdPMqYMUhUhg2nzUIvX6oleWgAjMvy_SUg/exec";
+const PORTAL_DATA_API_URL = "/api/portal-data";
 
 function getStoredPortalUser() {
   try {
@@ -172,56 +171,26 @@ function showHiStatusContent(records) {
   $("#hi-status-content").removeClass("d-none");
 }
 
-function fetchHiStatusRecords() {
-  if (
-    !HI_STATUS_APPS_SCRIPT_URL ||
-    HI_STATUS_APPS_SCRIPT_URL.includes("PASTE_")
-  ) {
-    return Promise.reject(
-      new Error("HI status Apps Script URL is not configured.")
-    );
+async function fetchHiStatusRecords(idToken) {
+  if (!idToken) {
+    throw new Error("Google sign-in token is missing.");
   }
 
-  const url = new URL(HI_STATUS_APPS_SCRIPT_URL);
+  const url = new URL(PORTAL_DATA_API_URL, window.location.origin);
   url.searchParams.set("action", "hi-status");
-  const callbackName = `hiStatusJsonp_${Date.now()}_${Math.random()
-    .toString(36)
-    .slice(2)}`;
-  url.searchParams.set("callback", callbackName);
 
-  return new Promise((resolve, reject) => {
-    const script = document.createElement("script");
-    const timeoutId = window.setTimeout(() => {
-      cleanup();
-      reject(new Error("HI status lookup timed out."));
-    }, 15000);
-
-    function cleanup() {
-      window.clearTimeout(timeoutId);
-      delete window[callbackName];
-      script.remove();
-    }
-
-    window[callbackName] = function (result) {
-      cleanup();
-
-      if (!result || !result.success) {
-        reject(new Error(result?.message || "HI status lookup failed."));
-        return;
-      }
-
-      resolve(Array.isArray(result.records) ? result.records : []);
-    };
-
-    script.src = url.toString();
-    script.async = true;
-    script.onerror = function () {
-      cleanup();
-      reject(new Error("Failed to load HI status data."));
-    };
-
-    document.body.appendChild(script);
+  const response = await fetch(url.toString(), {
+    headers: {
+      Authorization: `Bearer ${idToken}`,
+    },
   });
+  const result = await response.json();
+
+  if (!response.ok || !result || !result.success) {
+    throw new Error(result?.message || "HI status lookup failed.");
+  }
+
+  return Array.isArray(result.records) ? result.records : [];
 }
 async function loadHiStatusModalData() {
   resetHiStatusModal();
@@ -236,7 +205,7 @@ async function loadHiStatusModalData() {
 
     console.log("storedUser:", storedUser);
 
-    const records = await fetchHiStatusRecords();
+    const records = await fetchHiStatusRecords(storedUser.id_token);
 
     if (!records.length) {
       showHiStatusEmpty();

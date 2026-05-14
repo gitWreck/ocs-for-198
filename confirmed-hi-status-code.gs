@@ -49,6 +49,34 @@ function safeConfirmedHiText(value) {
   return value === null || value === undefined ? "" : String(value).trim();
 }
 
+function getPortalApiSharedSecret() {
+  return (
+    PropertiesService.getScriptProperties().getProperty(
+      "PORTAL_API_SHARED_SECRET"
+    ) || ""
+  );
+}
+
+function getAuthorizedPortalEmail(e) {
+  const suppliedEmail = normalizeConfirmedHiEmail(
+    e && e.parameter ? e.parameter.email : ""
+  );
+  const suppliedSecret = String(
+    e && e.parameter ? e.parameter.secret || "" : ""
+  );
+  const expectedSecret = getPortalApiSharedSecret();
+
+  if (suppliedEmail && expectedSecret && suppliedSecret === expectedSecret) {
+    return {
+      email: suppliedEmail,
+    };
+  }
+
+  return {
+    error: "Unauthorized Apps Script request.",
+  };
+}
+
 function getConfirmedHiCallbackName(e) {
   const callback = String(
     e && e.parameter ? e.parameter.callback || e.parameter.prefix || "" : ""
@@ -84,7 +112,7 @@ function doGet(e) {
   }
 
   if (action === HI_STATUS_ROUTE) {
-    return getHiStatusResponse(callbackName);
+    return getHiStatusResponse(e, callbackName);
   }
 
   return createConfirmedHiResponse({
@@ -95,14 +123,14 @@ function doGet(e) {
 
 function getConfirmedHiResponse(e, callbackName) {
   try {
-    const email = normalizeConfirmedHiEmail(
-      Session.getActiveUser().getEmail()
-    );
+    const authorization = getAuthorizedPortalEmail(e);
+    const email = authorization.email || "";
 
     if (!email) {
       return createConfirmedHiResponse({
         success: false,
-        message: "Unable to determine the signed-in Google account.",
+        message:
+          authorization.error || "Unable to authorize confirmed HI lookup.",
       }, callbackName);
     }
 
@@ -184,16 +212,15 @@ function getConfirmedHiResponse(e, callbackName) {
   }
 }
 
-function getHiStatusResponse(callbackName) {
+function getHiStatusResponse(e, callbackName) {
   try {
-    const email = normalizeConfirmedHiEmail(
-      Session.getActiveUser().getEmail()
-    );
+    const authorization = getAuthorizedPortalEmail(e);
+    const email = authorization.email || "";
 
     if (!email) {
       return createConfirmedHiResponse({
         success: false,
-        message: "Unable to determine the signed-in Google account.",
+        message: authorization.error || "Unable to authorize HI status lookup.",
       }, callbackName);
     }
 

@@ -1,5 +1,4 @@
-const CONFIRMED_HI_APPS_SCRIPT_URL =
-  "https://script.google.com/a/macros/up.edu.ph/s/AKfycbwuRq6qd89LIQ2_mthURuwZtprGmNnZ1CmdPMqYMUhUhg2nzUIvX6oleWgAjMvy_SUg/exec";
+const PORTAL_DATA_API_URL = "/api/portal-data";
 
 function getConfirmedHiStoredPortalUser() {
   try {
@@ -81,56 +80,26 @@ function showConfirmedHiContent(records) {
   $("#confirmed-hi-content").removeClass("d-none");
 }
 
-function fetchConfirmedHiRecords() {
-  if (
-    !CONFIRMED_HI_APPS_SCRIPT_URL ||
-    CONFIRMED_HI_APPS_SCRIPT_URL.includes("PASTE_")
-  ) {
-    return Promise.reject(
-      new Error("Confirmed HI Apps Script URL is not configured.")
-    );
+async function fetchConfirmedHiRecords(idToken) {
+  if (!idToken) {
+    throw new Error("Google sign-in token is missing.");
   }
 
-  const url = new URL(CONFIRMED_HI_APPS_SCRIPT_URL);
+  const url = new URL(PORTAL_DATA_API_URL, window.location.origin);
   url.searchParams.set("action", "confirmed-hi");
-  const callbackName = `confirmedHiJsonp_${Date.now()}_${Math.random()
-    .toString(36)
-    .slice(2)}`;
-  url.searchParams.set("callback", callbackName);
 
-  return new Promise((resolve, reject) => {
-    const script = document.createElement("script");
-    const timeoutId = window.setTimeout(() => {
-      cleanup();
-      reject(new Error("Confirmed HI lookup timed out."));
-    }, 15000);
-
-    function cleanup() {
-      window.clearTimeout(timeoutId);
-      delete window[callbackName];
-      script.remove();
-    }
-
-    window[callbackName] = function (result) {
-      cleanup();
-
-      if (!result || !result.success) {
-        reject(new Error(result?.message || "Confirmed HI lookup failed."));
-        return;
-      }
-
-      resolve(Array.isArray(result.records) ? result.records : []);
-    };
-
-    script.src = url.toString();
-    script.async = true;
-    script.onerror = function () {
-      cleanup();
-      reject(new Error("Failed to load confirmed HI data."));
-    };
-
-    document.body.appendChild(script);
+  const response = await fetch(url.toString(), {
+    headers: {
+      Authorization: `Bearer ${idToken}`,
+    },
   });
+  const result = await response.json();
+
+  if (!response.ok || !result || !result.success) {
+    throw new Error(result?.message || "Confirmed HI lookup failed.");
+  }
+
+  return Array.isArray(result.records) ? result.records : [];
 }
 
 async function loadConfirmedHiModalData() {
@@ -144,7 +113,7 @@ async function loadConfirmedHiModalData() {
       throw new Error("No logged-in user email found.");
     }
 
-    const records = await fetchConfirmedHiRecords();
+    const records = await fetchConfirmedHiRecords(storedUser.id_token);
 
     if (!records.length) {
       showConfirmedHiEmpty();

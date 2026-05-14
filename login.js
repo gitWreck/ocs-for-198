@@ -8,6 +8,7 @@ function handleCredentialResponse(response) {
       email: userData.email || "",
       name: userData.name || "",
       picture: userData.picture || "",
+      id_token: response.credential || "",
     };
 
     if (!loggedInUser.email) {
