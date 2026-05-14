@@ -1,4 +1,4 @@
-const PORTAL_DATA_API_URL = "/api/portal-data";
+const CONFIRMED_HI_PORTAL_DATA_API_URL = "/api/portal-data";
 
 function getConfirmedHiStoredPortalUser() {
   try {
@@ -85,7 +85,7 @@ async function fetchConfirmedHiRecords(idToken) {
     throw new Error("Google sign-in token is missing.");
   }
 
-  const url = new URL(PORTAL_DATA_API_URL, window.location.origin);
+  const url = new URL(CONFIRMED_HI_PORTAL_DATA_API_URL, window.location.origin);
   url.searchParams.set("action", "confirmed-hi");
 
   const response = await fetch(url.toString(), {
@@ -93,13 +93,33 @@ async function fetchConfirmedHiRecords(idToken) {
       Authorization: `Bearer ${idToken}`,
     },
   });
-  const result = await response.json();
+  const rawText = await response.text();
+  let result = null;
+
+  try {
+    result = JSON.parse(rawText);
+  } catch (error) {
+    throw new Error(
+      response.status === 404
+        ? "Portal data API was not found. Run the app with Vercel dev or deploy to Vercel."
+        : "Portal data API returned an invalid response."
+    );
+  }
 
   if (!response.ok || !result || !result.success) {
     throw new Error(result?.message || "Confirmed HI lookup failed.");
   }
 
   return Array.isArray(result.records) ? result.records : [];
+}
+
+function handleMissingConfirmedHiToken() {
+  sessionStorage.removeItem("student_portal_user");
+  showConfirmedHiError("Please sign in again to view confirmed HI data.");
+
+  window.setTimeout(() => {
+    window.location.href = "index.html";
+  }, 1500);
 }
 
 async function loadConfirmedHiModalData() {
@@ -111,6 +131,11 @@ async function loadConfirmedHiModalData() {
 
     if (!storedUser || !storedUser.email) {
       throw new Error("No logged-in user email found.");
+    }
+
+    if (!storedUser.id_token) {
+      handleMissingConfirmedHiToken();
+      return;
     }
 
     const records = await fetchConfirmedHiRecords(storedUser.id_token);

@@ -1,4 +1,4 @@
-const PORTAL_DATA_API_URL = "/api/portal-data";
+const HI_STATUS_PORTAL_DATA_API_URL = "/api/portal-data";
 
 function getStoredPortalUser() {
   try {
@@ -176,7 +176,7 @@ async function fetchHiStatusRecords(idToken) {
     throw new Error("Google sign-in token is missing.");
   }
 
-  const url = new URL(PORTAL_DATA_API_URL, window.location.origin);
+  const url = new URL(HI_STATUS_PORTAL_DATA_API_URL, window.location.origin);
   url.searchParams.set("action", "hi-status");
 
   const response = await fetch(url.toString(), {
@@ -184,7 +184,18 @@ async function fetchHiStatusRecords(idToken) {
       Authorization: `Bearer ${idToken}`,
     },
   });
-  const result = await response.json();
+  const rawText = await response.text();
+  let result = null;
+
+  try {
+    result = JSON.parse(rawText);
+  } catch (error) {
+    throw new Error(
+      response.status === 404
+        ? "Portal data API was not found. Run the app with Vercel dev or deploy to Vercel."
+        : "Portal data API returned an invalid response."
+    );
+  }
 
   if (!response.ok || !result || !result.success) {
     throw new Error(result?.message || "HI status lookup failed.");
@@ -192,6 +203,16 @@ async function fetchHiStatusRecords(idToken) {
 
   return Array.isArray(result.records) ? result.records : [];
 }
+
+function handleMissingHiStatusToken() {
+  sessionStorage.removeItem("student_portal_user");
+  showHiStatusError("Please sign in again to view HI status data.");
+
+  window.setTimeout(() => {
+    window.location.href = "index.html";
+  }, 1500);
+}
+
 async function loadHiStatusModalData() {
   resetHiStatusModal();
   showHiStatusLoading();
@@ -201,6 +222,11 @@ async function loadHiStatusModalData() {
 
     if (!storedUser || !storedUser.email) {
       throw new Error("No logged-in user email found.");
+    }
+
+    if (!storedUser.id_token) {
+      handleMissingHiStatusToken();
+      return;
     }
 
     console.log("storedUser:", storedUser);
