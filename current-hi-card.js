@@ -35,8 +35,8 @@ function setCurrentHiCardState({
 
   hiNameElement.textContent = hiName || "-";
   remarksElement.textContent = remarks || "-";
-  ficElement.textContent = fic || "";
-  sectionElement.textContent = section || "";
+  ficElement.textContent = fic || "-";
+  sectionElement.textContent = section || "-";
 
   hiNameElement.classList.toggle("current-hi-error", isError);
   remarksElement.classList.toggle("current-hi-error", isError);

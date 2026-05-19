@@ -14,6 +14,30 @@ const FIC_SECTION_HEADER_ALIASES = {
   section_id: ["section_id", "section id"],
   fic_name: ["fic_name", "fic name"],
 };
+const REQUIREMENTS_CHECKLIST_SHEET_NAME =
+  "FOR 198 List of students (OCS and FIC Checklist)";
+const REQUIREMENTS_CHECKLIST_ROUTE = "requirements-checklist";
+const REQUIREMENTS_CHECKLIST_HEADER_ALIASES = {
+  email: ["email", "student email", "email address", "up mail"],
+  answered_survey_form: ["answered survey form"],
+  csar_units: [
+    "csar units as of 1st sem 25 26",
+    "csar units as of 1st semester 2025 2026",
+  ],
+  am: ["am"],
+  pm: ["pm"],
+  onboarding_session: ["attendance to onboarding session"],
+  exit_conference: ["attendance to exit conference"],
+  mental_health_test: [
+    "mental heath test c o ocg",
+    "mental health test c o ocg",
+  ],
+  valid_medical_certificate: ["valid medical certificate"],
+  valid_accident_insurance: ["valid accident insurance"],
+  student_pledge_form: ["student s pledge form", "students pledge form"],
+  joint_undertaking_form: ["joint undertaking form"],
+  work_plan: ["work plan"],
+};
 const HI_STATUS_SPREADSHEET_ID =
   "1x1b4NjqOAg_rXEwwr5c8EuIhdm8xCUMkuxKlBMyd7Go";
 const HI_STATUS_SHEET_NAME = "STATUS OF APPLICATION";
@@ -120,6 +144,10 @@ function doGet(e) {
 
   if (action === FIC_SECTION_ROUTE) {
     return getFicSectionResponse(e, callbackName);
+  }
+
+  if (action === REQUIREMENTS_CHECKLIST_ROUTE) {
+    return getRequirementsChecklistResponse(e, callbackName);
   }
 
   if (action === HI_STATUS_ROUTE) {
@@ -301,6 +329,164 @@ function getFicSectionResponse(e, callbackName) {
         error && error.message
           ? error.message
           : "FIC section lookup failed.",
+    }, callbackName);
+  }
+}
+
+function getRequiredChecklistHeaderIndex(headers, key) {
+  return getConfirmedHiHeaderIndex(
+    headers,
+    REQUIREMENTS_CHECKLIST_HEADER_ALIASES[key]
+  );
+}
+
+function parseRequirementsChecklistBoolean(value) {
+  if (value === true) {
+    return true;
+  }
+
+  const normalized = String(value || "").trim().toLowerCase();
+  return ["true", "yes", "y", "1", "check", "checked"].includes(normalized);
+}
+
+function getRequirementsChecklistResponse(e, callbackName) {
+  try {
+    const authorization = getAuthorizedPortalEmail(e);
+    const email = authorization.email || "";
+
+    if (!email) {
+      return createConfirmedHiResponse({
+        success: false,
+        message:
+          authorization.error ||
+          "Unable to authorize requirements checklist lookup.",
+      }, callbackName);
+    }
+
+    const spreadsheet = SpreadsheetApp.openById(
+      CONFIRMED_HI_SPREADSHEET_ID
+    );
+    const sheet = spreadsheet.getSheetByName(REQUIREMENTS_CHECKLIST_SHEET_NAME);
+
+    if (!sheet) {
+      return createConfirmedHiResponse({
+        success: false,
+        message: "Requirements checklist sheet was not found.",
+      }, callbackName);
+    }
+
+    const values = sheet.getDataRange().getValues();
+
+    if (values.length < 2) {
+      return createConfirmedHiResponse({
+        success: true,
+        records: [],
+      }, callbackName);
+    }
+
+    const headers = values[0];
+    const indexes = {
+      email: getRequiredChecklistHeaderIndex(headers, "email"),
+      answeredSurveyForm: getRequiredChecklistHeaderIndex(
+        headers,
+        "answered_survey_form"
+      ),
+      csarUnits: getRequiredChecklistHeaderIndex(headers, "csar_units"),
+      am: getRequiredChecklistHeaderIndex(headers, "am"),
+      pm: getRequiredChecklistHeaderIndex(headers, "pm"),
+      onboardingSession: getRequiredChecklistHeaderIndex(
+        headers,
+        "onboarding_session"
+      ),
+      exitConference: getRequiredChecklistHeaderIndex(
+        headers,
+        "exit_conference"
+      ),
+      mentalHealthTest: getRequiredChecklistHeaderIndex(
+        headers,
+        "mental_health_test"
+      ),
+      validMedicalCertificate: getRequiredChecklistHeaderIndex(
+        headers,
+        "valid_medical_certificate"
+      ),
+      validAccidentInsurance: getRequiredChecklistHeaderIndex(
+        headers,
+        "valid_accident_insurance"
+      ),
+      studentPledgeForm: getRequiredChecklistHeaderIndex(
+        headers,
+        "student_pledge_form"
+      ),
+      jointUndertakingForm: getRequiredChecklistHeaderIndex(
+        headers,
+        "joint_undertaking_form"
+      ),
+      workPlan: getRequiredChecklistHeaderIndex(headers, "work_plan"),
+    };
+
+    const missingRequiredIndexes = Object.keys(indexes).filter(
+      (key) => indexes[key] < 0
+    );
+
+    if (missingRequiredIndexes.length) {
+      return createConfirmedHiResponse({
+        success: false,
+        message:
+          "Required requirements checklist columns were not found: " +
+          missingRequiredIndexes.join(", "),
+      }, callbackName);
+    }
+
+    const records = values
+      .slice(1)
+      .filter(
+        (row) =>
+          normalizeConfirmedHiEmail(row[indexes.email]) === email
+      )
+      .map((row) => ({
+        answeredSurveyForm: parseRequirementsChecklistBoolean(
+          row[indexes.answeredSurveyForm]
+        ),
+        csarUnits: Number(row[indexes.csarUnits]) || 0,
+        am: parseRequirementsChecklistBoolean(row[indexes.am]),
+        pm: parseRequirementsChecklistBoolean(row[indexes.pm]),
+        onboardingSession: parseRequirementsChecklistBoolean(
+          row[indexes.onboardingSession]
+        ),
+        exitConference: parseRequirementsChecklistBoolean(
+          row[indexes.exitConference]
+        ),
+        mentalHealthTest: parseRequirementsChecklistBoolean(
+          row[indexes.mentalHealthTest]
+        ),
+        validMedicalCertificate:
+          parseRequirementsChecklistBoolean(
+            row[indexes.validMedicalCertificate]
+          ),
+        validAccidentInsurance: parseRequirementsChecklistBoolean(
+          row[indexes.validAccidentInsurance]
+        ),
+        studentPledgeForm: parseRequirementsChecklistBoolean(
+          row[indexes.studentPledgeForm]
+        ),
+        jointUndertakingForm: parseRequirementsChecklistBoolean(
+          row[indexes.jointUndertakingForm]
+        ),
+        workPlan: parseRequirementsChecklistBoolean(row[indexes.workPlan]),
+      }));
+
+    return createConfirmedHiResponse({
+      success: true,
+      records,
+    }, callbackName);
+  } catch (error) {
+    return createConfirmedHiResponse({
+      success: false,
+      message:
+        error && error.message
+          ? error.message
+          : "Requirements checklist lookup failed.",
     }, callbackName);
   }
 }

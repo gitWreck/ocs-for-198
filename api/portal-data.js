@@ -1,4 +1,9 @@
-const ALLOWED_ACTIONS = new Set(["confirmed-hi", "hi-status", "fic-section"]);
+const ALLOWED_ACTIONS = new Set([
+  "confirmed-hi",
+  "hi-status",
+  "fic-section",
+  "requirements-checklist",
+]);
 
 function sendJson(response, status, payload) {
   response.status(status).json(payload);

@@ -270,6 +270,133 @@
         white-space: nowrap;
       }
 
+      .requirements-detail-list {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: stretch;
+        gap: 0.95rem;
+        margin-bottom: 1rem;
+      }
+
+      .requirements-detail-item {
+        border: 1px solid var(--portal-border);
+        border-radius: 1rem;
+        padding: 0.95rem 1rem;
+        background: #ffffff;
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+      }
+
+      .requirements-detail-row,
+      .requirements-detail-subitem {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+      }
+
+      .requirements-detail-label {
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: #111827;
+        line-height: 1.3;
+      }
+
+      .requirements-detail-value {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        flex: 0 0 auto;
+        font-size: 0.82rem;
+        font-weight: 800;
+        color: #111827;
+      }
+
+      .requirements-detail-note {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        width: fit-content;
+        border-radius: 999px;
+        padding: 0.28rem 0.55rem;
+        margin-top: 0.55rem;
+        background: #fee2e2;
+        font-size: 0.76rem;
+        font-weight: 700;
+        color: #991b1b;
+      }
+
+      .requirements-detail-check {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.05rem;
+        height: 1.05rem;
+        border-radius: 999px;
+        margin-left: 0.2rem;
+        background: var(--portal-green);
+        color: #fff;
+        font-size: 0.72rem;
+        font-weight: 800;
+        line-height: 1;
+        vertical-align: text-top;
+      }
+
+      .requirements-detail-warning {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.05rem;
+        height: 1.05rem;
+        border-radius: 999px;
+        background: #f59e0b;
+        color: #fff;
+        font-size: 0.72rem;
+        font-weight: 800;
+        line-height: 1;
+      }
+
+      .requirements-detail-note .requirements-detail-warning {
+        background: #dc2626;
+      }
+
+      .requirements-detail-sublist {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.65rem;
+        margin-top: 0.7rem;
+      }
+
+      .requirements-detail-subgroup {
+        display: grid;
+        gap: 0.55rem;
+      }
+
+      .requirements-detail-subitem {
+        border-radius: 0.75rem;
+        padding: 0.55rem 0.65rem;
+        background: #f8fafc;
+      }
+
+      .requirements-detail-item.is-warning {
+        border-color: #fecaca;
+        background: #fef2f2;
+      }
+
+      .requirements-detail-item.is-warning .requirements-detail-label,
+      .requirements-detail-item.is-warning .requirements-detail-note {
+        color: #991b1b;
+      }
+
+      .requirements-detail-left {
+        display: grid;
+        gap: 0.65rem;
+      }
+
+      .requirements-section-divider {
+        border-top: 1px solid var(--portal-border);
+        margin: 1rem 0;
+      }
+
       #companies-table tbody tr {
         cursor: pointer;
       }
@@ -605,6 +732,14 @@
           grid-template-columns: 1fr;
         }
 
+        .requirements-detail-list {
+          grid-template-columns: 1fr;
+        }
+
+        .requirements-detail-sublist {
+          grid-template-columns: 1fr;
+        }
+
         .companies-desktop-wrap {
           display: none;
         }
@@ -637,7 +772,11 @@
     </nav>
 
     <div class="container-fluid px-4 px-xxl-5 py-4 py-lg-5">
-      <div class="card hero-card rounded-4 shadow-sm mb-4">
+      <div
+        id="hi-selection-hero-card"
+        class="card hero-card rounded-4 shadow-sm mb-4 d-none"
+        aria-disabled="true"
+      >
         <div class="card-body p-4 p-lg-5">
           <div class="row align-items-center g-3">
             <div class="col-lg-8">
@@ -834,7 +973,11 @@
               </div>
             </div>
 
-            <div class="card portal-card">
+            <div
+              id="selected-his-card"
+              class="card portal-card d-none"
+              aria-disabled="true"
+            >
               <div class="card-body p-4">
                 <div
                   class="d-flex justify-content-between align-items-center mb-3"
@@ -906,10 +1049,17 @@
                   <div
                     id="requirements-checklist-summary"
                     class="requirements-summary"
-                  >
-                    Loading...
-                  </div>
+                >
+                  Loading...
                 </div>
+              </div>
+
+                <div
+                  id="requirements-detail-list"
+                  class="requirements-detail-list"
+                ></div>
+
+                <div class="requirements-section-divider"></div>
 
                 <div
                   id="requirements-checklist-list"
@@ -921,6 +1071,7 @@
             </div>
 
             <div
+              id="application-workflow-available-his-card"
               class="card portal-card portal-disabled-section mb-4"
               aria-disabled="true"
             >
@@ -984,6 +1135,7 @@
             </div>
 
             <div
+              id="application-workflow-documents-card"
               class="card portal-card portal-disabled-section"
               aria-disabled="true"
             >

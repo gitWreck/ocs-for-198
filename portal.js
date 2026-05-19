@@ -3,7 +3,13 @@ const SUPABASE_ANON_KEY = "sb_publishable_zc3HjgzA6LkNykZkKOoM8Q_6SqJBj0i";
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const APPS_SCRIPT_UPLOAD_URL =
   "https://script.google.com/macros/s/AKfycbwe1iJ97nOibhXXZPsHZtI4UEAOEPuI9HbJtnfmRyCWX01c9lad_paBYuhoqSl-cxOG/exec";
-const APPLICATION_WORKFLOW_DISABLED = true;
+const APPLICATION_WORKFLOW_VISIBLE =
+  window.APPLICATION_WORKFLOW_VISIBLE === true;
+const APPLICATION_WORKFLOW_DISABLED =
+  window.APPLICATION_WORKFLOW_DISABLED !== false;
+const SELECTED_HIS_VISIBLE = window.SELECTED_HIS_VISIBLE === true;
+const SELECTED_HIS_DISABLED = window.SELECTED_HIS_DISABLED !== false;
+const HI_SELECTION_HERO_VISIBLE = window.HI_SELECTION_HERO_VISIBLE === true;
 
 let companiesTable = null;
 
@@ -21,6 +27,20 @@ const MOBILE_COMPANIES_PER_PAGE = 5;
 
 let companyModalInstance = null;
 let saveConfirmModalInstance = null;
+
+function isApplicationWorkflowUnavailable() {
+  return !APPLICATION_WORKFLOW_VISIBLE || APPLICATION_WORKFLOW_DISABLED;
+}
+
+function isSelectedHisUnavailable() {
+  return !SELECTED_HIS_VISIBLE || SELECTED_HIS_DISABLED;
+}
+
+function applyHiSelectionHeroVisibilityState() {
+  $("#hi-selection-hero-card")
+    .toggleClass("d-none", !HI_SELECTION_HERO_VISIBLE)
+    .attr("aria-disabled", String(!HI_SELECTION_HERO_VISIBLE));
+}
 
 function getStoredUser() {
   try {
@@ -188,7 +208,7 @@ function renderCompaniesMobile(companies) {
 
   pagedCompanies.forEach((company) => {
     const remainingSlots = getRemainingSlots(company);
-    const isDisabled = APPLICATION_WORKFLOW_DISABLED || remainingSlots <= 0;
+    const isDisabled = isApplicationWorkflowUnavailable() || remainingSlots <= 0;
     const otherRequirements = company.other_requirements || "-";
 
     $mobileList.append(`
@@ -328,7 +348,8 @@ function renderCompanies(companies) {
       // console.log("Rendering company:", company);
 
       const remainingSlots = getRemainingSlots(company);
-      const isDisabled = APPLICATION_WORKFLOW_DISABLED || remainingSlots <= 0;
+      const isDisabled =
+        isApplicationWorkflowUnavailable() || remainingSlots <= 0;
       const otherRequirements = company.other_requirements || "-";
 
       rows.push([
@@ -376,7 +397,7 @@ function renderCompanies(companies) {
         }
 
         const isDisabled =
-          APPLICATION_WORKFLOW_DISABLED || getRemainingSlots(company) <= 0;
+          isApplicationWorkflowUnavailable() || getRemainingSlots(company) <= 0;
 
         if (isDisabled) {
           $(row)
@@ -416,7 +437,7 @@ function renderCompanies(companies) {
 
       if (!company) return;
 
-      if (APPLICATION_WORKFLOW_DISABLED || getRemainingSlots(company) <= 0) {
+      if (isApplicationWorkflowUnavailable() || getRemainingSlots(company) <= 0) {
         $(row).addClass("opacity-50");
         return;
       }
@@ -439,8 +460,54 @@ function renderSelectedCompanies() {
   $("#choice-3").text(selectedCompanies[2]?.company_name || "-");
 }
 
+function applySelectedHisVisibilityState() {
+  const shouldHide = !SELECTED_HIS_VISIBLE;
+  const shouldDisable = isSelectedHisUnavailable();
+
+  $("#selected-his-card")
+    .toggleClass("d-none", shouldHide)
+    .toggleClass("portal-disabled-section", shouldDisable)
+    .attr("aria-disabled", String(shouldDisable));
+  $("#clear-choices-btn").prop("disabled", shouldDisable);
+}
+
 function applyApplicationWorkflowDisabledState() {
-  if (!APPLICATION_WORKFLOW_DISABLED) {
+  const $workflowCards = $(
+    "#application-workflow-available-his-card, #application-workflow-documents-card"
+  );
+  const shouldHide = !APPLICATION_WORKFLOW_VISIBLE;
+  const shouldDisable = isApplicationWorkflowUnavailable();
+
+  $workflowCards.toggleClass("d-none", shouldHide);
+
+  if (shouldHide) {
+    $("#new-application-btn").addClass("d-none");
+  } else if (hasSubmitted) {
+    $("#new-application-btn").removeClass("d-none");
+  }
+
+  $workflowCards
+    .toggleClass("portal-disabled-section", shouldDisable)
+    .attr("aria-disabled", String(shouldDisable));
+  $("#new-application-btn").toggleClass(
+    "portal-disabled-button",
+    shouldDisable
+  );
+
+  if (!shouldDisable) {
+    if (!hasSubmitted) {
+      $("#companies-search").prop("disabled", false);
+      $("#companies-table_filter input").prop("disabled", false);
+      $("#companies-table_length select").prop("disabled", false);
+      $("#submitted-documents").prop("disabled", false);
+      $("#submitted-documents-name").text(
+        selectedSubmittedFile ? selectedSubmittedFile.name : "No file"
+      );
+      $("#save-preferences-btn")
+        .prop("disabled", false)
+        .text("Save Preferences");
+    }
+
     return;
   }
 
@@ -460,6 +527,7 @@ function applyApplicationWorkflowDisabledState() {
   $(".select-company-btn").prop("disabled", true).addClass("disabled");
   $(".company-row").css("pointer-events", "none").addClass("opacity-50");
   $(".company-card").css("pointer-events", "none").addClass("opacity-50");
+  applySelectedHisVisibilityState();
 }
 
 function setSelectedFiles() {
@@ -534,7 +602,7 @@ function clearSelectedCompanies() {
 }
 
 function unlockPortalForEditing() {
-  if (APPLICATION_WORKFLOW_DISABLED) {
+  if (isApplicationWorkflowUnavailable()) {
     applyApplicationWorkflowDisabledState();
     return;
   }
@@ -556,7 +624,7 @@ function unlockPortalForEditing() {
 }
 
 async function startNewApplication() {
-  if (APPLICATION_WORKFLOW_DISABLED) {
+  if (isApplicationWorkflowUnavailable()) {
     showPortalMessage("info", "New applications are currently unavailable.");
     return;
   }
@@ -607,6 +675,10 @@ async function startNewApplication() {
 }
 
 function handleClearChoices() {
+  if (isSelectedHisUnavailable()) {
+    return;
+  }
+
   clearSelectedCompanies();
 }
 
@@ -722,7 +794,7 @@ function lockPortalAfterSubmission() {
   $("#clear-choices-btn").prop("disabled", true).text("Clear Choices");
   $("#new-application-btn")
     .removeClass("d-none")
-    .prop("disabled", APPLICATION_WORKFLOW_DISABLED)
+    .prop("disabled", isApplicationWorkflowUnavailable())
     .text("New Application");
   $(".company-row").css("pointer-events", "none").addClass("opacity-50");
   $(".company-card").css("pointer-events", "none").addClass("opacity-50");
@@ -731,7 +803,7 @@ function lockPortalAfterSubmission() {
 }
 
 async function savePreferences() {
-  if (APPLICATION_WORKFLOW_DISABLED) {
+  if (isApplicationWorkflowUnavailable()) {
     showPortalMessage(
       "info",
       "Application submissions are currently unavailable."
@@ -945,6 +1017,8 @@ async function loadPortal(email) {
 
     $("#loading-section").addClass("d-none");
     $("#portal-section").removeClass("d-none");
+    applyHiSelectionHeroVisibilityState();
+    applySelectedHisVisibilityState();
     applyApplicationWorkflowDisabledState();
   } catch (error) {
     console.error("Portal load error:", error);
@@ -968,14 +1042,14 @@ $(document).ready(function () {
   loadPortal(loggedInUser.email);
 
   $(document).on("click", ".company-row", function () {
-    if (APPLICATION_WORKFLOW_DISABLED) return;
+    if (isApplicationWorkflowUnavailable()) return;
     if ($(this).hasClass("opacity-50")) return;
     const companyId = $(this).attr("data-id");
     openCompanyModal(companyId);
   });
 
   $(document).on("click", ".company-card", function (e) {
-    if (APPLICATION_WORKFLOW_DISABLED) return;
+    if (isApplicationWorkflowUnavailable()) return;
     // if ($(e.target).closest(".select-company-btn").length) return;
     e.stopPropagation();
     if ($(this).hasClass("opacity-50")) return;
@@ -1004,7 +1078,7 @@ $(document).ready(function () {
   });
 
   $("#select-company-btn").on("click", function () {
-    if (APPLICATION_WORKFLOW_DISABLED) return;
+    if (isApplicationWorkflowUnavailable()) return;
     selectCompanyFromModal();
   });
 
@@ -1017,12 +1091,12 @@ $(document).ready(function () {
   });
 
   $("#submitted-documents").on("change", function () {
-    if (APPLICATION_WORKFLOW_DISABLED) return;
+    if (isApplicationWorkflowUnavailable()) return;
     setSelectedFiles();
   });
 
   $("#save-preferences-btn").on("click", function () {
-    if (APPLICATION_WORKFLOW_DISABLED) {
+    if (isApplicationWorkflowUnavailable()) {
       showPortalMessage(
         "info",
         "Application submissions are currently unavailable."
