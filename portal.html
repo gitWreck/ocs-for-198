@@ -273,7 +273,7 @@
       .requirements-detail-list {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        align-items: stretch;
+        align-items: start;
         gap: 0.95rem;
         margin-bottom: 1rem;
       }
@@ -1044,15 +1044,17 @@
                 >
                   <div>
                     <div class="section-title mb-1">Student Checklist</div>
-                    <div class="section-subtitle">Submitted requirements</div>
+                    <div class="section-subtitle">
+                      Student details and submitted requirements
+                    </div>
                   </div>
                   <div
                     id="requirements-checklist-summary"
                     class="requirements-summary"
-                >
-                  Loading...
+                  >
+                    Loading...
+                  </div>
                 </div>
-              </div>
 
                 <div
                   id="requirements-detail-list"

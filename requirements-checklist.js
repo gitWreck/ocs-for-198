@@ -3,7 +3,7 @@ const REQUIRED_CSAR_UNITS = 60;
 
 const requirementsChecklistFallback = [
   {
-    name: "Mental Health Test c/o OCG",
+    name: "DAS Test c/o OCG",
     key: "mentalHealthTest",
     submitted: false,
   },
@@ -23,7 +23,8 @@ const requirementsChecklistFallback = [
     submitted: false,
   },
   {
-    name: "Notarized Consent of Parent/Guardian Form",
+    name: "Joint Undertaking Form",
+    key: "jointUndertakingForm",
     submitted: false,
   },
   {
@@ -31,25 +32,9 @@ const requirementsChecklistFallback = [
     key: "workPlan",
     submitted: false,
   },
-  {
-    name: "Joint Undertaking Form",
-    key: "jointUndertakingForm",
-    submitted: false,
-  },
 ];
 
 const requirementsDetailFallback = [
-  {
-    label: "Answered Survey Form",
-    value: "",
-    status: "default",
-  },
-  {
-    label: "Units as of 1st Semester 2025-2026",
-    value: "55 units",
-    note: "less than required units",
-    status: "warning",
-  },
   {
     label: "Attendance",
     value: null,
@@ -80,6 +65,12 @@ const requirementsDetailFallback = [
       },
     ],
     status: "default",
+  },
+  {
+    label: "Units as of 1st Semester 2025-2026",
+    value: "55 units",
+    note: "less than required units",
+    status: "warning",
   },
 ];
 
@@ -131,7 +122,7 @@ function renderRequirementsDetails(items) {
       wrapper.appendChild(sublist);
     }
 
-    if (index < 2) {
+    if (index === 0) {
       leftColumn.appendChild(wrapper);
       return;
     }
@@ -233,17 +224,6 @@ function mapRequirementsDetailRecord(record) {
 
   return [
     {
-      label: "Answered Survey Form",
-      value: record.answeredSurveyForm ? "check" : "",
-      status: "default",
-    },
-    {
-      label: "Units as of 1st Semester 2025-2026",
-      value: hasCsarUnits ? `${csarUnits} units` : "",
-      note: hasCsarUnits && !hasEnoughUnits ? "less than required units" : "",
-      status: hasCsarUnits && !hasEnoughUnits ? "warning" : "default",
-    },
-    {
       label: "Attendance",
       value: null,
       groups: [
@@ -273,6 +253,12 @@ function mapRequirementsDetailRecord(record) {
         },
       ],
       status: "default",
+    },
+    {
+      label: "Units as of 1st Semester 2025-2026",
+      value: hasCsarUnits ? `${csarUnits} units` : "",
+      note: hasCsarUnits && !hasEnoughUnits ? "less than required units" : "",
+      status: hasCsarUnits && !hasEnoughUnits ? "warning" : "default",
     },
   ];
 }

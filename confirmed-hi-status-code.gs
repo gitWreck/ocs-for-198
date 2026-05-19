@@ -19,7 +19,6 @@ const REQUIREMENTS_CHECKLIST_SHEET_NAME =
 const REQUIREMENTS_CHECKLIST_ROUTE = "requirements-checklist";
 const REQUIREMENTS_CHECKLIST_HEADER_ALIASES = {
   email: ["email", "student email", "email address", "up mail"],
-  answered_survey_form: ["answered survey form"],
   csar_units: [
     "csar units as of 1st sem 25 26",
     "csar units as of 1st semester 2025 2026",
@@ -29,13 +28,17 @@ const REQUIREMENTS_CHECKLIST_HEADER_ALIASES = {
   onboarding_session: ["attendance to onboarding session"],
   exit_conference: ["attendance to exit conference"],
   mental_health_test: [
+    "das test c o ocg",
     "mental heath test c o ocg",
     "mental health test c o ocg",
   ],
   valid_medical_certificate: ["valid medical certificate"],
   valid_accident_insurance: ["valid accident insurance"],
   student_pledge_form: ["student s pledge form", "students pledge form"],
-  joint_undertaking_form: ["joint undertaking form"],
+  joint_undertaking_form: [
+    "joint undertaking form",
+    "notarized consent of parent guardian form",
+  ],
   work_plan: ["work plan"],
 };
 const HI_STATUS_SPREADSHEET_ID =
@@ -387,10 +390,6 @@ function getRequirementsChecklistResponse(e, callbackName) {
     const headers = values[0];
     const indexes = {
       email: getRequiredChecklistHeaderIndex(headers, "email"),
-      answeredSurveyForm: getRequiredChecklistHeaderIndex(
-        headers,
-        "answered_survey_form"
-      ),
       csarUnits: getRequiredChecklistHeaderIndex(headers, "csar_units"),
       am: getRequiredChecklistHeaderIndex(headers, "am"),
       pm: getRequiredChecklistHeaderIndex(headers, "pm"),
@@ -445,9 +444,6 @@ function getRequirementsChecklistResponse(e, callbackName) {
           normalizeConfirmedHiEmail(row[indexes.email]) === email
       )
       .map((row) => ({
-        answeredSurveyForm: parseRequirementsChecklistBoolean(
-          row[indexes.answeredSurveyForm]
-        ),
         csarUnits: Number(row[indexes.csarUnits]) || 0,
         am: parseRequirementsChecklistBoolean(row[indexes.am]),
         pm: parseRequirementsChecklistBoolean(row[indexes.pm]),
