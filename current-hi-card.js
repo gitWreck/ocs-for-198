@@ -1,0 +1,173 @@
+const CURRENT_HI_CARD_API_URL = "/api/portal-data";
+const ASSIGNED_HI_SCHEDULES_GDOCS_URL =
+  "https://docs.google.com/document/d/1BEHx2Ub-kjBbyBkbRZKTlNjghePPtSUhiH22gUGAYZE/edit?tab=t.0";
+const CURRENT_HI_FALLBACK = {
+  hiName: "BIOTECH",
+  remarks: "",
+  fic: "",
+  section: "",
+};
+
+function getCurrentHiStoredPortalUser() {
+  try {
+    const raw = sessionStorage.getItem("student_portal_user");
+    return raw ? JSON.parse(raw) : null;
+  } catch (error) {
+    return null;
+  }
+}
+
+function setCurrentHiCardState({
+  hiName,
+  remarks,
+  fic,
+  section,
+  isError = false,
+}) {
+  const hiNameElement = document.getElementById("current-hi-name");
+  const remarksElement = document.getElementById("current-hi-remarks");
+  const ficElement = document.getElementById("current-hi-fic");
+  const sectionElement = document.getElementById("current-hi-section");
+
+  if (!hiNameElement || !remarksElement || !ficElement || !sectionElement) {
+    return;
+  }
+
+  hiNameElement.textContent = hiName || "-";
+  remarksElement.textContent = remarks || "-";
+  ficElement.textContent = fic || "";
+  sectionElement.textContent = section || "";
+
+  hiNameElement.classList.toggle("current-hi-error", isError);
+  remarksElement.classList.toggle("current-hi-error", isError);
+  ficElement.classList.toggle("current-hi-placeholder", !fic);
+  sectionElement.classList.toggle("current-hi-placeholder", !section);
+}
+
+function setupAssignedHiScheduleLink() {
+  const scheduleLink = document.getElementById("assigned-hi-schedule-link");
+
+  if (!scheduleLink) {
+    return;
+  }
+
+  if (ASSIGNED_HI_SCHEDULES_GDOCS_URL) {
+    scheduleLink.href = ASSIGNED_HI_SCHEDULES_GDOCS_URL;
+    scheduleLink.classList.remove("disabled");
+    scheduleLink.removeAttribute("aria-disabled");
+    return;
+  }
+
+  scheduleLink.href = "#";
+  scheduleLink.classList.add("disabled");
+  scheduleLink.setAttribute("aria-disabled", "true");
+}
+
+async function fetchPortalDataRecords(idToken, action) {
+  if (!idToken) {
+    throw new Error("Google sign-in token is missing.");
+  }
+
+  const url = new URL(CURRENT_HI_CARD_API_URL, window.location.origin);
+  url.searchParams.set("action", action);
+
+  const response = await fetch(url.toString(), {
+    headers: {
+      Authorization: `Bearer ${idToken}`,
+    },
+  });
+  const rawText = await response.text();
+  let result = null;
+
+  try {
+    result = JSON.parse(rawText);
+  } catch (error) {
+    throw new Error("Portal data API returned an invalid response.");
+  }
+
+  if (!response.ok || !result || !result.success) {
+    throw new Error(result?.message || "Portal data lookup failed.");
+  }
+
+  return Array.isArray(result.records) ? result.records : [];
+}
+
+async function fetchCurrentHiCardRecords(idToken) {
+  return fetchPortalDataRecords(idToken, "confirmed-hi");
+}
+
+async function fetchFicSectionRecords(idToken) {
+  return fetchPortalDataRecords(idToken, "fic-section");
+}
+
+async function loadCurrentHiCard() {
+  setCurrentHiCardState({
+    ...CURRENT_HI_FALLBACK,
+  });
+
+  try {
+    const storedUser = getCurrentHiStoredPortalUser();
+
+    if (!storedUser || !storedUser.email) {
+      setCurrentHiCardState({
+        ...CURRENT_HI_FALLBACK,
+        isError: true,
+      });
+      return;
+    }
+
+    if (!storedUser.id_token) {
+      setCurrentHiCardState({
+        ...CURRENT_HI_FALLBACK,
+        isError: true,
+      });
+      return;
+    }
+
+    const [confirmedHiResult, ficSectionResult] = await Promise.allSettled([
+      fetchCurrentHiCardRecords(storedUser.id_token),
+      fetchFicSectionRecords(storedUser.id_token),
+    ]);
+    const records =
+      confirmedHiResult.status === "fulfilled" ? confirmedHiResult.value : [];
+    const ficSectionRecords =
+      ficSectionResult.status === "fulfilled" ? ficSectionResult.value : [];
+    const currentRecord = records[0] || null;
+    const ficSectionRecord = ficSectionRecords[0] || null;
+
+    if (confirmedHiResult.status === "rejected") {
+      console.error("Confirmed HI card lookup error:", confirmedHiResult.reason);
+    }
+
+    if (ficSectionResult.status === "rejected") {
+      console.error("FIC section lookup error:", ficSectionResult.reason);
+    }
+
+    if (!currentRecord) {
+      setCurrentHiCardState({
+        ...CURRENT_HI_FALLBACK,
+        fic: ficSectionRecord?.ficName || "",
+        section: ficSectionRecord?.sectionId || "",
+      });
+      return;
+    }
+
+    setCurrentHiCardState({
+      hiName: currentRecord.confirmedHi || "-",
+      remarks: currentRecord.remarks || "-",
+      fic: ficSectionRecord?.ficName || "",
+      section: ficSectionRecord?.sectionId || "",
+    });
+  } catch (error) {
+    console.error("Current HI card load error:", error);
+    setCurrentHiCardState({
+      ...CURRENT_HI_FALLBACK,
+      isError: true,
+    });
+  }
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  setupAssignedHiScheduleLink();
+  loadCurrentHiCard();
+});

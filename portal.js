@@ -3,6 +3,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_zc3HjgzA6LkNykZkKOoM8Q_6SqJBj0i";
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const APPS_SCRIPT_UPLOAD_URL =
   "https://script.google.com/macros/s/AKfycbwe1iJ97nOibhXXZPsHZtI4UEAOEPuI9HbJtnfmRyCWX01c9lad_paBYuhoqSl-cxOG/exec";
+const APPLICATION_WORKFLOW_DISABLED = true;
 
 let companiesTable = null;
 
@@ -187,7 +188,7 @@ function renderCompaniesMobile(companies) {
 
   pagedCompanies.forEach((company) => {
     const remainingSlots = getRemainingSlots(company);
-    const isDisabled = remainingSlots <= 0;
+    const isDisabled = APPLICATION_WORKFLOW_DISABLED || remainingSlots <= 0;
     const otherRequirements = company.other_requirements || "-";
 
     $mobileList.append(`
@@ -233,7 +234,7 @@ function renderCompaniesMobile(companies) {
             data-id="${company.id}"
             ${hasSubmitted || isDisabled ? "disabled" : ""}
           >
-            ${isDisabled ? "Not yet final" : "Select"}
+            ${isDisabled ? "Unavailable" : "Select"}
           </button>
         </div>
       </div>
@@ -327,7 +328,7 @@ function renderCompanies(companies) {
       // console.log("Rendering company:", company);
 
       const remainingSlots = getRemainingSlots(company);
-      const isDisabled = remainingSlots <= 0;
+      const isDisabled = APPLICATION_WORKFLOW_DISABLED || remainingSlots <= 0;
       const otherRequirements = company.other_requirements || "-";
 
       rows.push([
@@ -344,7 +345,7 @@ function renderCompanies(companies) {
           data-id="${company.id}"
           ${isDisabled ? "disabled" : ""}
         >
-          ${isDisabled ? "Not yet final" : "Select"}
+          ${isDisabled ? "Unavailable" : "Select"}
         </button>`,
       ]);
     });
@@ -374,7 +375,8 @@ function renderCompanies(companies) {
           return;
         }
 
-        const isDisabled = getRemainingSlots(company) <= 0;
+        const isDisabled =
+          APPLICATION_WORKFLOW_DISABLED || getRemainingSlots(company) <= 0;
 
         if (isDisabled) {
           $(row)
@@ -414,7 +416,7 @@ function renderCompanies(companies) {
 
       if (!company) return;
 
-      if (getRemainingSlots(company) <= 0) {
+      if (APPLICATION_WORKFLOW_DISABLED || getRemainingSlots(company) <= 0) {
         $(row).addClass("opacity-50");
         return;
       }
@@ -428,12 +430,36 @@ function renderCompanies(companies) {
 
   mobileCompaniesPage = 1;
   syncCompaniesView(true);
+  applyApplicationWorkflowDisabledState();
 }
 
 function renderSelectedCompanies() {
   $("#choice-1").text(selectedCompanies[0]?.company_name || "-");
   $("#choice-2").text(selectedCompanies[1]?.company_name || "-");
   $("#choice-3").text(selectedCompanies[2]?.company_name || "-");
+}
+
+function applyApplicationWorkflowDisabledState() {
+  if (!APPLICATION_WORKFLOW_DISABLED) {
+    return;
+  }
+
+  $("#new-application-btn")
+    .prop("disabled", true)
+    .attr("aria-disabled", "true")
+    .text("New Application");
+  $("#companies-search").prop("disabled", true);
+  $("#companies-table_filter input").prop("disabled", true);
+  $("#companies-table_length select").prop("disabled", true);
+  $("#submitted-documents").prop("disabled", true).val("");
+  $("#submitted-documents-name").text("Currently unavailable");
+  $("#save-preferences-btn")
+    .prop("disabled", true)
+    .text("Currently Unavailable");
+  $("#select-company-btn").prop("disabled", true);
+  $(".select-company-btn").prop("disabled", true).addClass("disabled");
+  $(".company-row").css("pointer-events", "none").addClass("opacity-50");
+  $(".company-card").css("pointer-events", "none").addClass("opacity-50");
 }
 
 function setSelectedFiles() {
@@ -508,6 +534,11 @@ function clearSelectedCompanies() {
 }
 
 function unlockPortalForEditing() {
+  if (APPLICATION_WORKFLOW_DISABLED) {
+    applyApplicationWorkflowDisabledState();
+    return;
+  }
+
   $("#save-preferences-btn").prop("disabled", false).text("Save Preferences");
   $("#submitted-documents").prop("disabled", false).val("");
   $("#submitted-documents-name").text("No file");
@@ -525,6 +556,11 @@ function unlockPortalForEditing() {
 }
 
 async function startNewApplication() {
+  if (APPLICATION_WORKFLOW_DISABLED) {
+    showPortalMessage("info", "New applications are currently unavailable.");
+    return;
+  }
+
   if (!currentStudent || !loggedInUser?.email) {
     showPortalMessage("danger", "No student loaded.");
     return;
@@ -686,14 +722,23 @@ function lockPortalAfterSubmission() {
   $("#clear-choices-btn").prop("disabled", true).text("Clear Choices");
   $("#new-application-btn")
     .removeClass("d-none")
-    .prop("disabled", false)
+    .prop("disabled", APPLICATION_WORKFLOW_DISABLED)
     .text("New Application");
   $(".company-row").css("pointer-events", "none").addClass("opacity-50");
   $(".company-card").css("pointer-events", "none").addClass("opacity-50");
   $(".select-company-btn").prop("disabled", true);
+  applyApplicationWorkflowDisabledState();
 }
 
 async function savePreferences() {
+  if (APPLICATION_WORKFLOW_DISABLED) {
+    showPortalMessage(
+      "info",
+      "Application submissions are currently unavailable."
+    );
+    return;
+  }
+
   $("#save-preferences-btn").prop("disabled", true).text("Saving...");
 
   try {
@@ -900,6 +945,7 @@ async function loadPortal(email) {
 
     $("#loading-section").addClass("d-none");
     $("#portal-section").removeClass("d-none");
+    applyApplicationWorkflowDisabledState();
   } catch (error) {
     console.error("Portal load error:", error);
     $("#loading-section").addClass("d-none");
@@ -922,12 +968,14 @@ $(document).ready(function () {
   loadPortal(loggedInUser.email);
 
   $(document).on("click", ".company-row", function () {
+    if (APPLICATION_WORKFLOW_DISABLED) return;
     if ($(this).hasClass("opacity-50")) return;
     const companyId = $(this).attr("data-id");
     openCompanyModal(companyId);
   });
 
   $(document).on("click", ".company-card", function (e) {
+    if (APPLICATION_WORKFLOW_DISABLED) return;
     // if ($(e.target).closest(".select-company-btn").length) return;
     e.stopPropagation();
     if ($(this).hasClass("opacity-50")) return;
@@ -956,6 +1004,7 @@ $(document).ready(function () {
   });
 
   $("#select-company-btn").on("click", function () {
+    if (APPLICATION_WORKFLOW_DISABLED) return;
     selectCompanyFromModal();
   });
 
@@ -968,10 +1017,19 @@ $(document).ready(function () {
   });
 
   $("#submitted-documents").on("change", function () {
+    if (APPLICATION_WORKFLOW_DISABLED) return;
     setSelectedFiles();
   });
 
   $("#save-preferences-btn").on("click", function () {
+    if (APPLICATION_WORKFLOW_DISABLED) {
+      showPortalMessage(
+        "info",
+        "Application submissions are currently unavailable."
+      );
+      return;
+    }
+
     // savePreferences();
 
     if (!currentStudent) {

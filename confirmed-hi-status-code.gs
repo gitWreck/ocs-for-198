@@ -7,6 +7,13 @@ const CONFIRMED_HI_HEADER_ALIASES = {
   confirmed_hi: ["confirmed hi"],
   remarks: ["remarks"],
 };
+const FIC_SECTION_SHEET_NAME = "FIC HI Sectioning";
+const FIC_SECTION_ROUTE = "fic-section";
+const FIC_SECTION_HEADER_ALIASES = {
+  email: ["email address"],
+  section_id: ["section_id", "section id"],
+  fic_name: ["fic_name", "fic name"],
+};
 const HI_STATUS_SPREADSHEET_ID =
   "1x1b4NjqOAg_rXEwwr5c8EuIhdm8xCUMkuxKlBMyd7Go";
 const HI_STATUS_SHEET_NAME = "STATUS OF APPLICATION";
@@ -111,6 +118,10 @@ function doGet(e) {
     return getConfirmedHiResponse(e, callbackName);
   }
 
+  if (action === FIC_SECTION_ROUTE) {
+    return getFicSectionResponse(e, callbackName);
+  }
+
   if (action === HI_STATUS_ROUTE) {
     return getHiStatusResponse(e, callbackName);
   }
@@ -208,6 +219,88 @@ function getConfirmedHiResponse(e, callbackName) {
         error && error.message
           ? error.message
           : "Confirmed HI lookup failed.",
+    }, callbackName);
+  }
+}
+
+function getFicSectionResponse(e, callbackName) {
+  try {
+    const authorization = getAuthorizedPortalEmail(e);
+    const email = authorization.email || "";
+
+    if (!email) {
+      return createConfirmedHiResponse({
+        success: false,
+        message:
+          authorization.error || "Unable to authorize FIC section lookup.",
+      }, callbackName);
+    }
+
+    const spreadsheet = SpreadsheetApp.openById(
+      CONFIRMED_HI_SPREADSHEET_ID
+    );
+    const sheet = spreadsheet.getSheetByName(FIC_SECTION_SHEET_NAME);
+
+    if (!sheet) {
+      return createConfirmedHiResponse({
+        success: false,
+        message: "FIC HI Sectioning sheet was not found.",
+      }, callbackName);
+    }
+
+    const values = sheet.getDataRange().getValues();
+
+    if (values.length < 2) {
+      return createConfirmedHiResponse({
+        success: true,
+        records: [],
+      }, callbackName);
+    }
+
+    const headers = values[0];
+    const emailIndex = getConfirmedHiHeaderIndex(
+      headers,
+      FIC_SECTION_HEADER_ALIASES.email
+    );
+    const sectionIdIndex = getConfirmedHiHeaderIndex(
+      headers,
+      FIC_SECTION_HEADER_ALIASES.section_id
+    );
+    const ficNameIndex = getConfirmedHiHeaderIndex(
+      headers,
+      FIC_SECTION_HEADER_ALIASES.fic_name
+    );
+
+    if (emailIndex < 0 || sectionIdIndex < 0 || ficNameIndex < 0) {
+      return createConfirmedHiResponse({
+        success: false,
+        message: "Required FIC section columns were not found.",
+      }, callbackName);
+    }
+
+    const records = values
+      .slice(1)
+      .filter(
+        (row) =>
+          normalizeConfirmedHiEmail(row[emailIndex]) === email
+      )
+      .map((row) => ({
+        sectionId: safeConfirmedHiText(row[sectionIdIndex]),
+        ficName: safeConfirmedHiText(row[ficNameIndex]),
+      }))
+      .filter((record) => record.sectionId || record.ficName);
+
+    return createConfirmedHiResponse({
+      success: true,
+      records,
+    }, callbackName);
+  } catch (error) {
+    return createConfirmedHiResponse({
+      success: false,
+      message:
+        error && error.message
+          ? error.message
+          : "FIC section lookup failed.",
     }, callbackName);
   }
 }
