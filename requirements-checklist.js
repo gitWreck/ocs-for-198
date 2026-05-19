@@ -174,6 +174,35 @@ function createRequirementWarningIcon() {
   return warning;
 }
 
+function renderRequirementsChecklistLoading() {
+  const detailListElement = document.getElementById("requirements-detail-list");
+  const checklistElement = document.getElementById("requirements-checklist-list");
+  const summaryElement = document.getElementById(
+    "requirements-checklist-summary"
+  );
+
+  if (summaryElement) {
+    summaryElement.textContent = "Loading...";
+  }
+
+  const loadingMarkup = `
+    <div class="requirements-loading text-center text-muted py-4">
+      <div class="spinner-border spinner-border-sm mb-2" style="color: #04543c" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <div class="small">Loading checklist...</div>
+    </div>
+  `;
+
+  if (detailListElement) {
+    detailListElement.innerHTML = loadingMarkup;
+  }
+
+  if (checklistElement) {
+    checklistElement.innerHTML = loadingMarkup;
+  }
+}
+
 function getRequirementsChecklistStoredPortalUser() {
   try {
     const raw = sessionStorage.getItem("student_portal_user");
@@ -327,13 +356,14 @@ function renderRequirementsChecklist(items) {
 }
 
 async function loadRequirementsChecklist() {
-  renderRequirementsDetails(requirementsDetailFallback);
-  renderRequirementsChecklist(requirementsChecklistFallback);
+  renderRequirementsChecklistLoading();
 
   try {
     const storedUser = getRequirementsChecklistStoredPortalUser();
 
     if (!storedUser?.id_token) {
+      renderRequirementsDetails(requirementsDetailFallback);
+      renderRequirementsChecklist(requirementsChecklistFallback);
       return;
     }
 
@@ -343,6 +373,8 @@ async function loadRequirementsChecklist() {
     renderRequirementsChecklist(mapRequirementsChecklistRecord(record));
   } catch (error) {
     console.error("Requirements checklist load error:", error);
+    renderRequirementsDetails(requirementsDetailFallback);
+    renderRequirementsChecklist(requirementsChecklistFallback);
   }
 }
 

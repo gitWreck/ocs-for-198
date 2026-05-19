@@ -92,10 +92,6 @@ async function fetchPortalDataRecords(idToken, action) {
   return Array.isArray(result.records) ? result.records : [];
 }
 
-async function fetchCurrentHiCardRecords(idToken) {
-  return fetchPortalDataRecords(idToken, "confirmed-hi");
-}
-
 async function fetchFicSectionRecords(idToken) {
   return fetchPortalDataRecords(idToken, "fic-section");
 }
@@ -124,37 +120,19 @@ async function loadCurrentHiCard() {
       return;
     }
 
-    const [confirmedHiResult, ficSectionResult] = await Promise.allSettled([
-      fetchCurrentHiCardRecords(storedUser.id_token),
-      fetchFicSectionRecords(storedUser.id_token),
-    ]);
-    const records =
-      confirmedHiResult.status === "fulfilled" ? confirmedHiResult.value : [];
-    const ficSectionRecords =
-      ficSectionResult.status === "fulfilled" ? ficSectionResult.value : [];
-    const currentRecord = records[0] || null;
+    const ficSectionRecords = await fetchFicSectionRecords(storedUser.id_token);
     const ficSectionRecord = ficSectionRecords[0] || null;
 
-    if (confirmedHiResult.status === "rejected") {
-      console.error("Confirmed HI card lookup error:", confirmedHiResult.reason);
-    }
-
-    if (ficSectionResult.status === "rejected") {
-      console.error("FIC section lookup error:", ficSectionResult.reason);
-    }
-
-    if (!currentRecord) {
+    if (!ficSectionRecord) {
       setCurrentHiCardState({
         ...CURRENT_HI_FALLBACK,
-        fic: ficSectionRecord?.ficName || "",
-        section: ficSectionRecord?.sectionId || "",
       });
       return;
     }
 
     setCurrentHiCardState({
-      hiName: currentRecord.confirmedHi || "-",
-      remarks: currentRecord.remarks || "-",
+      hiName: ficSectionRecord.hiName || "-",
+      remarks: ficSectionRecord.remarks || "-",
       fic: ficSectionRecord?.ficName || "",
       section: ficSectionRecord?.sectionId || "",
     });

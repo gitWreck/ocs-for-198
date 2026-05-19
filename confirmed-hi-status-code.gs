@@ -11,6 +11,8 @@ const FIC_SECTION_SHEET_NAME = "FIC HI Sectioning";
 const FIC_SECTION_ROUTE = "fic-section";
 const FIC_SECTION_HEADER_ALIASES = {
   email: ["email address"],
+  hi_name: ["hi_name", "hi name"],
+  remarks: ["remarks"],
   section_id: ["section_id", "section id"],
   fic_name: ["fic_name", "fic name"],
 };
@@ -293,6 +295,14 @@ function getFicSectionResponse(e, callbackName) {
       headers,
       FIC_SECTION_HEADER_ALIASES.email
     );
+    const hiNameIndex = getConfirmedHiHeaderIndex(
+      headers,
+      FIC_SECTION_HEADER_ALIASES.hi_name
+    );
+    const remarksIndex = getConfirmedHiHeaderIndex(
+      headers,
+      FIC_SECTION_HEADER_ALIASES.remarks
+    );
     const sectionIdIndex = getConfirmedHiHeaderIndex(
       headers,
       FIC_SECTION_HEADER_ALIASES.section_id
@@ -316,10 +326,16 @@ function getFicSectionResponse(e, callbackName) {
           normalizeConfirmedHiEmail(row[emailIndex]) === email
       )
       .map((row) => ({
+        hiName: hiNameIndex >= 0 ? safeConfirmedHiText(row[hiNameIndex]) : "",
+        remarks:
+          remarksIndex >= 0 ? safeConfirmedHiText(row[remarksIndex]) : "",
         sectionId: safeConfirmedHiText(row[sectionIdIndex]),
         ficName: safeConfirmedHiText(row[ficNameIndex]),
       }))
-      .filter((record) => record.sectionId || record.ficName);
+      .filter(
+        (record) =>
+          record.hiName || record.remarks || record.sectionId || record.ficName
+      );
 
     return createConfirmedHiResponse({
       success: true,
