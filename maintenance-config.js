@@ -1,4 +1,4 @@
-window.PORTAL_AVAILABLE = true;
+window.PORTAL_AVAILABLE = false;
 // window.PORTAL_UNAVAILABLE_AT_PH = "2026-05-08T12:00:00+08:00";
 window.PORTAL_UNAVAILABLE_AT_PH = "";
 
