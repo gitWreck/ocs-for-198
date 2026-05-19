@@ -113,6 +113,11 @@ function renderRequirementsDetails(items) {
         group.children.forEach((child) => {
           const subitem = createRequirementDetailRow(child.label, child.value);
           subitem.classList.add("requirements-detail-subitem");
+
+          if (String(child.value || "").trim().toLowerCase() === "check") {
+            subitem.classList.add("is-submitted");
+          }
+
           subgroup.appendChild(subitem);
         });
 

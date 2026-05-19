@@ -2,7 +2,7 @@ const CURRENT_HI_CARD_API_URL = "/api/portal-data";
 const ASSIGNED_HI_SCHEDULES_GDOCS_URL =
   "https://docs.google.com/document/d/1BEHx2Ub-kjBbyBkbRZKTlNjghePPtSUhiH22gUGAYZE/edit?tab=t.0";
 const CURRENT_HI_FALLBACK = {
-  hiName: "BIOTECH",
+  hiName: "No data",
   remarks: "",
   fic: "",
   section: "",
@@ -33,7 +33,7 @@ function setCurrentHiCardState({
     return;
   }
 
-  hiNameElement.textContent = hiName || "-";
+  hiNameElement.textContent = hiName || "No data";
   remarksElement.textContent = remarks || "-";
   ficElement.textContent = fic || "-";
   sectionElement.textContent = section || "-";
@@ -153,7 +153,7 @@ async function loadCurrentHiCard() {
     }
 
     setCurrentHiCardState({
-      hiName: ficSectionRecord.hiName || "-",
+      hiName: ficSectionRecord.hiName || "No data",
       remarks: ficSectionRecord.remarks || "-",
       fic: ficSectionRecord?.ficName || "",
       section: ficSectionRecord?.sectionId || "",
