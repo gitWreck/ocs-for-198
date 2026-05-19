@@ -44,6 +44,30 @@ function setCurrentHiCardState({
   sectionElement.classList.toggle("current-hi-placeholder", !section);
 }
 
+function setCurrentHiCardLoadingState() {
+  const hiNameElement = document.getElementById("current-hi-name");
+  const remarksElement = document.getElementById("current-hi-remarks");
+  const ficElement = document.getElementById("current-hi-fic");
+  const sectionElement = document.getElementById("current-hi-section");
+
+  if (!hiNameElement || !remarksElement || !ficElement || !sectionElement) {
+    return;
+  }
+
+  hiNameElement.innerHTML = `
+    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+    Loading assigned HI...
+  `;
+  remarksElement.textContent = "-";
+  ficElement.textContent = "-";
+  sectionElement.textContent = "-";
+
+  hiNameElement.classList.remove("current-hi-error");
+  remarksElement.classList.remove("current-hi-error");
+  ficElement.classList.add("current-hi-placeholder");
+  sectionElement.classList.add("current-hi-placeholder");
+}
+
 function setupAssignedHiScheduleLink() {
   const scheduleLink = document.getElementById("assigned-hi-schedule-link");
 
@@ -97,9 +121,7 @@ async function fetchFicSectionRecords(idToken) {
 }
 
 async function loadCurrentHiCard() {
-  setCurrentHiCardState({
-    ...CURRENT_HI_FALLBACK,
-  });
+  setCurrentHiCardLoadingState();
 
   try {
     const storedUser = getCurrentHiStoredPortalUser();
