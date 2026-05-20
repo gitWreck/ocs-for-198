@@ -14,3 +14,7 @@ window.SELECTED_HIS_DISABLED = true;
 
 // Internship HI Selection hero controls.
 window.HI_SELECTION_HERO_VISIBLE = false;
+
+// HI status button controls.
+window.HI_STATUS_BUTTON_VISIBLE = false;
+window.HI_STATUS_BUTTON_DISABLED = true;

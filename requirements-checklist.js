@@ -68,9 +68,9 @@ const requirementsDetailFallback = [
   },
   {
     label: "Units as of 1st Semester 2025-2026",
-    value: "55 units",
-    note: "less than required units",
-    status: "warning",
+    value: "",
+    note: "",
+    status: "default",
   },
 ];
 
@@ -386,8 +386,8 @@ async function loadRequirementsChecklist() {
 function positionStudentChecklistCard() {
   const assignedHiCard = document.getElementById("assigned-hi-card");
   const checklistCard = document.getElementById("student-checklist-card");
-  const availableHisCard = document.querySelector(
-    ".portal-disabled-section.mb-4"
+  const availableHisCard = document.getElementById(
+    "application-workflow-available-his-card"
   );
 
   if (!assignedHiCard || !checklistCard || !availableHisCard) {

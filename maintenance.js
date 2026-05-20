@@ -156,4 +156,37 @@
   if (hasScheduledPause) {
     scheduleMaintenancePage(unavailableAt - Date.now());
   }
+
+  function applyHiStatusButtonState() {
+    const hiStatusButton = document.getElementById("view-hi-status-btn");
+    if (!hiStatusButton) return;
+
+    const shouldHide = window.HI_STATUS_BUTTON_VISIBLE !== true;
+    const shouldDisable = window.HI_STATUS_BUTTON_DISABLED !== false;
+
+    hiStatusButton.classList.toggle("d-none", shouldHide);
+    hiStatusButton.classList.toggle("portal-disabled-section", shouldDisable);
+    hiStatusButton.setAttribute("aria-disabled", String(shouldDisable));
+
+    if (shouldDisable) {
+      hiStatusButton.removeAttribute("data-bs-toggle");
+      hiStatusButton.removeAttribute("data-bs-target");
+      hiStatusButton.setAttribute("tabindex", "-1");
+      hiStatusButton.style.pointerEvents = "none";
+      return;
+    }
+
+    hiStatusButton.setAttribute("data-bs-toggle", "modal");
+    hiStatusButton.setAttribute("data-bs-target", "#hiStatusModal");
+    hiStatusButton.removeAttribute("tabindex");
+    hiStatusButton.style.pointerEvents = "";
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", applyHiStatusButtonState, {
+      once: true,
+    });
+  } else {
+    applyHiStatusButtonState();
+  }
 })();
