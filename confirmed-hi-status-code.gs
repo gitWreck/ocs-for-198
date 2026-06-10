@@ -30,6 +30,7 @@ const REQUIREMENTS_CHECKLIST_HEADER_ALIASES = {
   onboarding_session: ["attendance to onboarding session"],
   exit_conference: ["attendance to exit conference"],
   mental_health_test: [
+    "das c o ocg",
     "das test c o ocg",
     "mental heath test c o ocg",
     "mental health test c o ocg",
