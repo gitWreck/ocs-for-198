@@ -3,6 +3,7 @@ const ALLOWED_ACTIONS = new Set([
   "hi-status",
   "fic-section",
   "requirements-checklist",
+  "official-enrollment",
 ]);
 
 function sendJson(response, status, payload) {

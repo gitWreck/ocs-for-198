@@ -43,6 +43,14 @@ const REQUIREMENTS_CHECKLIST_HEADER_ALIASES = {
   ],
   work_plan: ["work plan"],
 };
+const AMIS_ENROLLS_SHEET_NAME = "AMIS ENROLLS";
+const OFFICIAL_ENROLLMENT_ROUTE = "official-enrollment";
+const OFFICIAL_ENROLLMENT_HEADER_ALIASES = {
+  email: ["email"],
+  course_no: ["course no"],
+  section: ["section"],
+  status: ["status"],
+};
 const HI_STATUS_SPREADSHEET_ID =
   "1x1b4NjqOAg_rXEwwr5c8EuIhdm8xCUMkuxKlBMyd7Go";
 const HI_STATUS_SHEET_NAME = "STATUS OF APPLICATION";
@@ -153,6 +161,10 @@ function doGet(e) {
 
   if (action === REQUIREMENTS_CHECKLIST_ROUTE) {
     return getRequirementsChecklistResponse(e, callbackName);
+  }
+
+  if (action === OFFICIAL_ENROLLMENT_ROUTE) {
+    return getOfficialEnrollmentResponse(e, callbackName);
   }
 
   if (action === HI_STATUS_ROUTE) {
@@ -499,6 +511,113 @@ function getRequirementsChecklistResponse(e, callbackName) {
         error && error.message
           ? error.message
           : "Requirements checklist lookup failed.",
+    }, callbackName);
+  }
+}
+
+function isOfficialEnrollmentStatus(value) {
+  const normalizedStatus = normalizeConfirmedHiHeader(value);
+  return ["officially enrolled", "finalized"].includes(normalizedStatus);
+}
+
+function getOfficialEnrollmentResponse(e, callbackName) {
+  try {
+    const authorization = getAuthorizedPortalEmail(e);
+    const email = authorization.email || "";
+
+    if (!email) {
+      return createConfirmedHiResponse({
+        success: false,
+        message:
+          authorization.error ||
+          "Unable to authorize official enrollment lookup.",
+      }, callbackName);
+    }
+
+    const spreadsheet = SpreadsheetApp.openById(
+      CONFIRMED_HI_SPREADSHEET_ID
+    );
+    const sheet = spreadsheet.getSheetByName(AMIS_ENROLLS_SHEET_NAME);
+
+    if (!sheet) {
+      return createConfirmedHiResponse({
+        success: false,
+        message: "AMIS ENROLLS sheet was not found.",
+      }, callbackName);
+    }
+
+    const values = sheet.getDataRange().getValues();
+
+    if (values.length < 2) {
+      return createConfirmedHiResponse({
+        success: true,
+        officiallyEnrolled: false,
+        records: [],
+      }, callbackName);
+    }
+
+    const headers = values[0];
+    const indexes = {
+      email: getConfirmedHiHeaderIndex(
+        headers,
+        OFFICIAL_ENROLLMENT_HEADER_ALIASES.email
+      ),
+      courseNo: getConfirmedHiHeaderIndex(
+        headers,
+        OFFICIAL_ENROLLMENT_HEADER_ALIASES.course_no
+      ),
+      section: getConfirmedHiHeaderIndex(
+        headers,
+        OFFICIAL_ENROLLMENT_HEADER_ALIASES.section
+      ),
+      status: getConfirmedHiHeaderIndex(
+        headers,
+        OFFICIAL_ENROLLMENT_HEADER_ALIASES.status
+      ),
+    };
+
+    const missingRequiredIndexes = Object.keys(indexes).filter(
+      (key) => indexes[key] < 0
+    );
+
+    if (missingRequiredIndexes.length) {
+      return createConfirmedHiResponse({
+        success: false,
+        message:
+          "Required official enrollment columns were not found: " +
+          missingRequiredIndexes.join(", "),
+      }, callbackName);
+    }
+
+    const records = values
+      .slice(1)
+      .filter(
+        (row) =>
+          normalizeConfirmedHiEmail(row[indexes.email]) === email
+      )
+      .map((row) => ({
+        courseNo: safeConfirmedHiText(row[indexes.courseNo]),
+        section: safeConfirmedHiText(row[indexes.section]),
+        status: safeConfirmedHiText(row[indexes.status]),
+      }))
+      .filter(
+        (record) => record.courseNo || record.section || record.status
+      );
+
+    return createConfirmedHiResponse({
+      success: true,
+      officiallyEnrolled: records.some((record) =>
+        isOfficialEnrollmentStatus(record.status)
+      ),
+      records,
+    }, callbackName);
+  } catch (error) {
+    return createConfirmedHiResponse({
+      success: false,
+      message:
+        error && error.message
+          ? error.message
+          : "Official enrollment lookup failed.",
     }, callbackName);
   }
 }

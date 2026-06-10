@@ -1,0 +1,541 @@
+/*
+  OCS Portal Theme
+  Load after Bootstrap. Bootstrap Icons and DataTables styles are optional.
+*/
+
+:root {
+  --ocs-green: #04543c;
+  --ocs-green-dark: #033b2a;
+  --ocs-maroon: #8b1539;
+  --ocs-maroon-dark: #74112f;
+  --ocs-blue: #2563eb;
+  --ocs-blue-dark: #1d4ed8;
+  --ocs-warning: #f59e0b;
+  --ocs-danger: #dc2626;
+  --ocs-text: #1f2937;
+  --ocs-heading: #111827;
+  --ocs-muted: #6c757d;
+  --ocs-border: #e9ecef;
+  --ocs-surface: #ffffff;
+  --ocs-soft-surface: #f8fafc;
+  --ocs-page-bg: linear-gradient(135deg, #f8f5f6 0%, #f3f7f5 100%);
+  --ocs-login-bg: linear-gradient(135deg, #f8fffb 0%, #eef6ff 100%);
+  --ocs-brand-gradient: linear-gradient(135deg, var(--ocs-maroon) 0%, var(--ocs-green) 100%);
+  --ocs-green-gradient: linear-gradient(135deg, var(--ocs-green-dark) 0%, var(--ocs-green) 100%);
+  --ocs-blue-gradient: linear-gradient(135deg, #0d6efd 0%, var(--ocs-blue) 100%);
+  --ocs-radius-card: 1.25rem;
+  --ocs-radius-field: 0.7rem;
+  --ocs-shadow-card: 0 10px 30px rgba(15, 23, 42, 0.08);
+  --ocs-shadow-soft: 0 8px 20px rgba(15, 23, 42, 0.04);
+
+  /* Compatibility aliases for the current FOR 198 project. */
+  --portal-maroon: var(--ocs-maroon);
+  --portal-green: var(--ocs-green);
+  --portal-light: #f7f8fa;
+  --portal-muted: var(--ocs-muted);
+  --portal-border: var(--ocs-border);
+  --brand-green: var(--ocs-green);
+  --brand-green-dark: var(--ocs-green-dark);
+  --soft-bg: var(--ocs-login-bg);
+}
+
+body.ocs-app,
+body.portal-theme {
+  background: var(--ocs-page-bg);
+  color: var(--ocs-text);
+}
+
+body.ocs-login-page,
+body.login-theme {
+  min-height: 100vh;
+  background: var(--ocs-login-bg);
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.ocs-navbar,
+.portal-navbar {
+  background: var(--ocs-brand-gradient);
+}
+
+.ocs-navbar .navbar-brand,
+.portal-navbar .navbar-brand {
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.ocs-btn-logout,
+.portal-navbar .btn-logout {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  background-color: var(--ocs-maroon);
+  border-color: var(--ocs-maroon);
+  color: #fff;
+}
+
+.ocs-btn-logout:hover,
+.ocs-btn-logout:focus,
+.portal-navbar .btn-logout:hover,
+.portal-navbar .btn-logout:focus {
+  background-color: #6f102e;
+  border-color: #6f102e;
+  color: #fff;
+}
+
+.ocs-hero-card,
+.hero-card {
+  background: linear-gradient(135deg, rgba(139, 21, 57, 0.95) 0%, rgba(4, 84, 60, 0.95) 100%);
+  color: #fff;
+  border: 0;
+}
+
+.ocs-card,
+.portal-card {
+  border: 0;
+  border-radius: var(--ocs-radius-card);
+  box-shadow: var(--ocs-shadow-card);
+}
+
+.ocs-section-title,
+.section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ocs-heading);
+}
+
+.ocs-section-subtitle,
+.section-subtitle {
+  font-size: 0.88rem;
+  color: var(--ocs-muted);
+}
+
+.ocs-info-label,
+.info-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ocs-muted);
+}
+
+.ocs-info-value,
+.info-value {
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: var(--ocs-heading);
+}
+
+.ocs-choice-box,
+.choice-box {
+  border: 1px solid var(--ocs-border);
+  border-radius: 0.9rem;
+  padding: 0.9rem 1rem;
+  background: #fff;
+}
+
+.ocs-choice-number,
+.choice-number {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #fff;
+  background-color: var(--ocs-maroon);
+}
+
+.ocs-btn-primary,
+.btn-portal-primary {
+  background-color: var(--ocs-maroon);
+  border-color: var(--ocs-maroon);
+  color: #fff;
+}
+
+.ocs-btn-primary:hover,
+.ocs-btn-primary:focus,
+.btn-portal-primary:hover,
+.btn-portal-primary:focus {
+  background-color: var(--ocs-maroon-dark);
+  border-color: var(--ocs-maroon-dark);
+  color: #fff;
+}
+
+.ocs-btn-secondary,
+.btn-portal-secondary {
+  border-color: var(--ocs-green);
+  color: var(--ocs-green);
+}
+
+.ocs-btn-secondary:hover,
+.ocs-btn-secondary:focus,
+.btn-portal-secondary:hover,
+.btn-portal-secondary:focus {
+  background-color: var(--ocs-green);
+  border-color: var(--ocs-green);
+  color: #fff;
+}
+
+.ocs-action-btn,
+.new-application-btn {
+  background: var(--ocs-blue-gradient);
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  border-radius: var(--ocs-radius-card);
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0;
+  box-shadow: 0 10px 30px rgba(37, 99, 235, 0.2);
+}
+
+.ocs-action-btn:hover,
+.ocs-action-btn:focus,
+.new-application-btn:hover,
+.new-application-btn:focus {
+  background: linear-gradient(135deg, #0b5ed7 0%, var(--ocs-blue-dark) 100%);
+  color: #fff;
+  box-shadow: 0 12px 24px rgba(37, 99, 235, 0.28);
+  transform: translateY(-2px);
+}
+
+.ocs-disabled-section,
+.portal-disabled-section {
+  position: relative;
+  opacity: 0.55;
+  filter: grayscale(0.85);
+}
+
+.ocs-disabled-section::after,
+.portal-disabled-section::after {
+  content: "Currently unavailable";
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 3;
+  border-radius: 999px;
+  padding: 0.35rem 0.7rem;
+  background: rgba(17, 24, 39, 0.82);
+  color: #fff;
+  font-size: 0.76rem;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.ocs-disabled-section .card-body,
+.ocs-disabled-section table,
+.ocs-disabled-section input,
+.ocs-disabled-section button,
+.ocs-disabled-section select,
+.portal-disabled-section .card-body,
+.portal-disabled-section table,
+.portal-disabled-section input,
+.portal-disabled-section button,
+.portal-disabled-section select {
+  pointer-events: none;
+}
+
+.ocs-disabled-button,
+.portal-disabled-button {
+  opacity: 0.5;
+  filter: grayscale(0.9);
+  pointer-events: none;
+}
+
+.table thead th {
+  background-color: #f8f9fb;
+  color: #374151;
+  font-size: 0.82rem;
+  font-weight: 700;
+  border-bottom: 1px solid var(--ocs-border);
+}
+
+.modal-header {
+  border-bottom: 1px solid var(--ocs-border);
+}
+
+.modal-footer {
+  border-top: 1px solid var(--ocs-border);
+}
+
+.ocs-pill,
+.requirements-summary {
+  border-radius: 999px;
+  padding: 0.42rem 0.7rem;
+  background: rgba(4, 84, 60, 0.1);
+  color: var(--ocs-green);
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.ocs-status-badge,
+.hi-status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+
+.ocs-status-success,
+.hi-status-approved {
+  background: #dcfce7;
+  color: #166534;
+  border-color: #bbf7d0;
+}
+
+.ocs-status-warning,
+.hi-status-waitlisted {
+  background: #fef3c7;
+  color: #92400e;
+  border-color: #fde68a;
+}
+
+.ocs-status-danger,
+.hi-status-rejected {
+  background: #fee2e2;
+  color: #991b1b;
+  border-color: #fecaca;
+}
+
+.ocs-status-muted,
+.hi-status-pending {
+  background: #e5e7eb;
+  color: #374151;
+  border-color: #d1d5db;
+}
+
+.ocs-checklist-grid,
+.requirements-checklist-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.ocs-checklist-item,
+.requirement-checklist-item {
+  border: 1px solid var(--ocs-border);
+  border-radius: 1rem;
+  padding: 0.9rem 1rem;
+  background: #fff;
+}
+
+.ocs-checklist-item.is-submitted,
+.requirement-checklist-item.is-submitted {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+
+.ocs-checklist-item.is-pending,
+.requirement-checklist-item.is-pending {
+  border-color: #fde68a;
+  background: #fffbeb;
+}
+
+.ocs-check,
+.requirement-check {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.ocs-check.is-submitted,
+.requirement-check.is-submitted {
+  background: var(--ocs-green);
+  color: #fff;
+}
+
+.ocs-check.is-pending,
+.requirement-check.is-pending {
+  background: var(--ocs-warning);
+  color: #fff;
+}
+
+.ocs-data-card,
+.requirements-detail-item,
+.previous-application-item,
+.hi-student-summary,
+.hi-status-item {
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 14px 16px;
+  background: #ffffff;
+}
+
+.dataTables_wrapper .dataTables_filter input,
+.dataTables_wrapper .dataTables_length select {
+  border-radius: var(--ocs-radius-field);
+  border: 1px solid var(--ocs-border);
+}
+
+.dataTables_wrapper .dataTables_filter input {
+  padding: 0.4rem 0.7rem;
+}
+
+.page-item.active .page-link {
+  background-color: var(--ocs-green);
+  border-color: var(--ocs-green);
+}
+
+.page-link {
+  color: var(--ocs-green);
+}
+
+.ocs-login-wrapper,
+.login-wrapper {
+  min-height: 100vh;
+}
+
+.ocs-login-card,
+.login-card {
+  border: 0;
+  border-radius: 1.5rem;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+}
+
+.ocs-login-banner,
+.login-banner {
+  background: var(--ocs-green-gradient);
+  color: #fff;
+  padding: 2rem;
+  height: 100%;
+}
+
+.ocs-login-badge,
+.login-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border-radius: 999px;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.ocs-portal-title,
+.portal-title {
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.ocs-portal-subtitle,
+.portal-subtitle {
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 0.98rem;
+}
+
+.ocs-login-content,
+.login-content {
+  padding: 2rem;
+}
+
+.ocs-welcome-title,
+.welcome-title {
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: var(--ocs-text);
+}
+
+.ocs-welcome-text,
+.welcome-text {
+  color: #6b7280;
+  font-size: 0.96rem;
+}
+
+.ocs-signin-box,
+.signin-box {
+  border: 1px solid var(--ocs-border);
+  border-radius: 1rem;
+  padding: 1.25rem;
+  background: var(--ocs-soft-surface);
+}
+
+.ocs-note-box,
+.note-box {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  padding: 0.9rem 1rem;
+  color: #475569;
+  font-size: 0.88rem;
+}
+
+@media (max-width: 1080px) {
+  .ocs-checklist-grid,
+  .requirements-checklist-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .ocs-login-banner,
+  .login-banner {
+    padding: 1.75rem;
+  }
+
+  .ocs-login-content,
+  .login-content {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .ocs-navbar .ocs-btn-logout,
+  .portal-navbar .btn-logout {
+    width: 2.25rem;
+    height: 2.25rem;
+    padding: 0;
+  }
+
+  .ocs-btn-logout-label,
+  .portal-navbar .btn-logout-label {
+    display: none;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .ocs-login-page .container,
+  .login-theme .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .ocs-login-banner,
+  .ocs-login-content,
+  .login-banner,
+  .login-content {
+    padding: 1.25rem;
+  }
+
+  .ocs-welcome-title,
+  .welcome-title {
+    font-size: 1.4rem;
+  }
+
+  .ocs-portal-title,
+  .portal-title {
+    font-size: 1.7rem;
+  }
+}
+

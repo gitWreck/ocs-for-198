@@ -648,6 +648,100 @@
         color: #fde68a;
       }
 
+      .official-enrollment-card {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(14, 165, 233, 0.22);
+        background:
+          linear-gradient(
+            135deg,
+            rgba(2, 132, 199, 0.96),
+            rgba(4, 120, 87, 0.94)
+          ),
+          #047857;
+        color: #fff;
+        box-shadow: 0 18px 44px rgba(2, 132, 199, 0.2);
+      }
+
+      .official-enrollment-card::before {
+        content: "";
+        position: absolute;
+        top: -42px;
+        right: -38px;
+        width: 128px;
+        height: 128px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.13);
+      }
+
+      .official-enrollment-card::after {
+        content: "";
+        position: absolute;
+        left: 18px;
+        bottom: -54px;
+        width: 112px;
+        height: 112px;
+        border-radius: 999px;
+        background: rgba(187, 247, 208, 0.12);
+      }
+
+      .official-enrollment-card .section-title,
+      .official-enrollment-card .section-subtitle,
+      .official-enrollment-card .info-label,
+      .official-enrollment-card .info-value,
+      .official-enrollment-card .official-enrollment-status {
+        position: relative;
+        z-index: 1;
+      }
+
+      .official-enrollment-card .section-title,
+      .official-enrollment-card .info-value {
+        color: #fff;
+      }
+
+      .official-enrollment-card .section-subtitle,
+      .official-enrollment-card .info-label {
+        color: rgba(255, 255, 255, 0.74);
+      }
+
+      .official-enrollment-card .info-value {
+        display: inline-flex;
+        width: 100%;
+        border-radius: 0.9rem;
+        padding: 0.72rem 0.85rem;
+        background: rgba(255, 255, 255, 0.13);
+        border: 1px solid rgba(255, 255, 255, 0.17);
+        font-size: 0.95rem;
+        font-weight: 700;
+        word-break: break-word;
+      }
+
+      .official-enrollment-status {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: 0.55rem 0.8rem;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        font-size: 0.82rem;
+        font-weight: 800;
+        line-height: 1;
+      }
+
+      .official-enrollment-status.is-enrolled {
+        background: rgba(220, 252, 231, 0.95);
+        color: #14532d;
+      }
+
+      .official-enrollment-status.is-pending {
+        background: rgba(254, 243, 199, 0.95);
+        color: #78350f;
+      }
+
+      .official-enrollment-status.is-error {
+        background: rgba(254, 226, 226, 0.95);
+        color: #7f1d1d;
+      }
+
       .assigned-hi-schedule-btn {
         position: relative;
         z-index: 1;
@@ -887,6 +981,42 @@
       <div id="portal-section" class="d-none">
         <div class="row g-4">
           <div class="col-xl-3">
+            <div
+              id="official-enrollment-card"
+              class="card portal-card official-enrollment-card mb-4"
+            >
+              <div class="card-body p-4">
+                <div class="section-title mb-1">Official Enrollment</div>
+                <div class="section-subtitle mb-4">
+                  AMIS enrollment status
+                </div>
+
+                <div class="mb-3">
+                  <div class="info-label">Course No</div>
+                  <div id="official-enrollment-course-no" class="info-value">
+                    Loading...
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <div class="info-label">Section</div>
+                  <div id="official-enrollment-section" class="info-value">
+                    Loading...
+                  </div>
+                </div>
+
+                <div class="mb-0">
+                  <div class="info-label">Status</div>
+                  <span
+                    id="official-enrollment-status"
+                    class="official-enrollment-status is-pending"
+                  >
+                    Loading...
+                  </span>
+                </div>
+              </div>
+            </div>
+
             <div
               id="assigned-hi-card"
               class="card portal-card current-hi-card mb-4"

@@ -7,6 +7,12 @@ const CURRENT_HI_FALLBACK = {
   fic: "",
   section: "",
 };
+const OFFICIAL_ENROLLMENT_FALLBACK = {
+  courseNo: "No data",
+  section: "No data",
+  status: "No record found",
+  officiallyEnrolled: false,
+};
 
 function getCurrentHiStoredPortalUser() {
   try {
@@ -87,7 +93,53 @@ function setupAssignedHiScheduleLink() {
   scheduleLink.setAttribute("aria-disabled", "true");
 }
 
-async function fetchPortalDataRecords(idToken, action) {
+function setOfficialEnrollmentCardState({
+  courseNo,
+  section,
+  status,
+  officiallyEnrolled = false,
+  isError = false,
+}) {
+  const courseNoElement = document.getElementById(
+    "official-enrollment-course-no"
+  );
+  const sectionElement = document.getElementById("official-enrollment-section");
+  const statusElement = document.getElementById("official-enrollment-status");
+
+  if (!courseNoElement || !sectionElement || !statusElement) {
+    return;
+  }
+
+  courseNoElement.textContent = courseNo || "No data";
+  sectionElement.textContent = section || "No data";
+  statusElement.textContent = status || "No record found";
+  statusElement.classList.toggle("is-enrolled", officiallyEnrolled && !isError);
+  statusElement.classList.toggle("is-pending", !officiallyEnrolled && !isError);
+  statusElement.classList.toggle("is-error", isError);
+}
+
+function setOfficialEnrollmentCardLoadingState() {
+  const courseNoElement = document.getElementById(
+    "official-enrollment-course-no"
+  );
+  const sectionElement = document.getElementById("official-enrollment-section");
+  const statusElement = document.getElementById("official-enrollment-status");
+
+  if (!courseNoElement || !sectionElement || !statusElement) {
+    return;
+  }
+
+  courseNoElement.innerHTML = `
+    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+    Loading...
+  `;
+  sectionElement.textContent = "Loading...";
+  statusElement.textContent = "Loading...";
+  statusElement.classList.remove("is-enrolled", "is-error");
+  statusElement.classList.add("is-pending");
+}
+
+async function fetchPortalDataPayload(idToken, action) {
   if (!idToken) {
     throw new Error("Google sign-in token is missing.");
   }
@@ -113,11 +165,20 @@ async function fetchPortalDataRecords(idToken, action) {
     throw new Error(result?.message || "Portal data lookup failed.");
   }
 
+  return result;
+}
+
+async function fetchPortalDataRecords(idToken, action) {
+  const result = await fetchPortalDataPayload(idToken, action);
   return Array.isArray(result.records) ? result.records : [];
 }
 
 async function fetchFicSectionRecords(idToken) {
   return fetchPortalDataRecords(idToken, "fic-section");
+}
+
+async function fetchOfficialEnrollmentPayload(idToken) {
+  return fetchPortalDataPayload(idToken, "official-enrollment");
 }
 
 async function loadCurrentHiCard() {
@@ -167,7 +228,59 @@ async function loadCurrentHiCard() {
   }
 }
 
+async function loadOfficialEnrollmentCard() {
+  setOfficialEnrollmentCardLoadingState();
+
+  try {
+    const storedUser = getCurrentHiStoredPortalUser();
+
+    if (!storedUser || !storedUser.email || !storedUser.id_token) {
+      setOfficialEnrollmentCardState({
+        ...OFFICIAL_ENROLLMENT_FALLBACK,
+        status: "Unable to verify",
+        isError: true,
+      });
+      return;
+    }
+
+    const enrollmentPayload = await fetchOfficialEnrollmentPayload(
+      storedUser.id_token
+    );
+    const enrollmentRecords = Array.isArray(enrollmentPayload.records)
+      ? enrollmentPayload.records
+      : [];
+    const enrollmentRecord =
+      enrollmentRecords.find((record) =>
+        ["officially enrolled", "finalized"].includes(
+          String(record.status || "").trim().toLowerCase()
+        )
+      ) ||
+      enrollmentRecords[0] ||
+      null;
+
+    if (!enrollmentRecord) {
+      setOfficialEnrollmentCardState(OFFICIAL_ENROLLMENT_FALLBACK);
+      return;
+    }
+
+    setOfficialEnrollmentCardState({
+      courseNo: enrollmentRecord.courseNo || "No data",
+      section: enrollmentRecord.section || "No data",
+      status: enrollmentRecord.status || "No status",
+      officiallyEnrolled: Boolean(enrollmentPayload.officiallyEnrolled),
+    });
+  } catch (error) {
+    console.error("Official enrollment card load error:", error);
+    setOfficialEnrollmentCardState({
+      ...OFFICIAL_ENROLLMENT_FALLBACK,
+      status: "Lookup failed",
+      isError: true,
+    });
+  }
+}
+
 document.addEventListener("DOMContentLoaded", function () {
   setupAssignedHiScheduleLink();
+  loadOfficialEnrollmentCard();
   loadCurrentHiCard();
 });
