@@ -113,8 +113,17 @@ function setOfficialEnrollmentCardState({
   courseNoElement.textContent = courseNo || "No data";
   sectionElement.textContent = section || "No data";
   statusElement.textContent = status || "No record found";
-  statusElement.classList.toggle("is-enrolled", officiallyEnrolled && !isError);
-  statusElement.classList.toggle("is-pending", !officiallyEnrolled && !isError);
+  const isFinalized = String(status || "").trim().toLowerCase() === "finalized";
+
+  statusElement.classList.toggle(
+    "is-enrolled",
+    officiallyEnrolled && !isFinalized && !isError
+  );
+  statusElement.classList.toggle("is-finalized", isFinalized && !isError);
+  statusElement.classList.toggle(
+    "is-pending",
+    !officiallyEnrolled && !isError
+  );
   statusElement.classList.toggle("is-error", isError);
 }
 
@@ -135,7 +144,7 @@ function setOfficialEnrollmentCardLoadingState() {
   `;
   sectionElement.textContent = "Loading...";
   statusElement.textContent = "Loading...";
-  statusElement.classList.remove("is-enrolled", "is-error");
+  statusElement.classList.remove("is-enrolled", "is-finalized", "is-error");
   statusElement.classList.add("is-pending");
 }
 
